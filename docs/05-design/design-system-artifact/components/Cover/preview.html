@@ -1,0 +1,32 @@
+<!-- @dsCard height=288 -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,650&family=Geist:wght@400;500&display=swap">
+<style>
+body{margin:0;background:var(--surface)}
+.cv{position:relative;width:960px;height:288px;overflow:hidden;background:var(--surface)}
+svg{position:absolute;inset:0}
+.ink{fill:var(--ink)} .f1{fill:var(--facet-1)} .f2{fill:var(--facet-2)} .f3{fill:var(--facet-3)} .f4{fill:var(--facet-4)} .f5{fill:var(--facet-5)} .tint{fill:var(--sunk)}
+.t14{rx:var(--radius-xl)} .t16{rx:var(--radius-2xl)} .t10{rx:var(--radius-lg)}
+.txt{position:absolute;left:40px;bottom:36px;max-width:440px}
+.name{font:650 120px/.92 var(--font-display);letter-spacing:-0.035em;color:var(--ink);margin:0}
+.tag{font:400 14px/1.4 var(--font-body);color:var(--ink-2);margin:10px 0 0}
+</style>
+<div class="cv">
+<svg width="960" height="288" viewBox="0 0 960 288" aria-hidden="true">
+<!-- blocks: ink slab 160x320 (bleeds top and bottom) + facet-2 208x152 + facet-1 128x96 + facet-3 64x96 + sunk tint 96x64; radii radius-2xl / radius-xl
+     arrangement: one tall slab with satellites, like the app window beside its account rail
+     pattern: modular tiles cut by radius-lg (row "geometric, modular, dense UI"), five 40px rail tiles stacked at a 48px pitch inside the slab, because the account rail is the most specific shape in Facet
+     scales: space-9 32px insets, space-6 16px gaps, tiles 40px with radius-lg 10px, blocks radius-xl 14px and radius-2xl 16px -->
+<rect class="ink t16" x="528" y="-16" width="160" height="320"/>
+<rect class="f1 t10" x="588" y="24" width="40" height="40"/>
+<rect class="f2 t10" x="588" y="72" width="40" height="40"/>
+<rect class="f3 t10" x="588" y="120" width="40" height="40"/>
+<rect class="f4 t10" x="588" y="168" width="40" height="40"/>
+<rect class="f5 t10" x="588" y="216" width="40" height="40"/>
+<rect class="f2 t16" x="704" y="24" width="208" height="152"/>
+<rect class="f1 t14" x="704" y="192" width="128" height="96"/>
+<rect class="f3 t14" x="848" y="192" width="64" height="96"/>
+<rect class="tint t14" x="912" y="96" width="96" height="64"/>
+</svg>
+<div class="txt"><p class="name">Facet</p><p class="tag">Every Claude account, its own colour, its own costs, its own rules.</p></div>
+</div>
+<script></script>

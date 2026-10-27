@@ -1,0 +1,50 @@
+#!/bin/bash
+# Launch Claude Desktop with the separate Work profile, as its own dock icon.
+# The app hardcodes its Wayland app_id, so the Work instance runs under X11
+# (XWayland) and its windows' WM_CLASS is relabeled to "claude-work", which
+# matches StartupWMClass in ~/.local/share/applications/claude-work.desktop.
+
+BIN=/usr/lib/claude-desktop/claude-desktop
+DATA_DIR="$HOME/.config/Claude-Work"
+CLASS=claude-work
+LOCK="${XDG_RUNTIME_DIR:-/tmp}/claude-desktop-work.lock"
+
+# Code sessions started from this Desktop's Code tab sign in with the Desktop's
+# own account (Desktop passes it to them), but they keep transcripts, settings,
+# skills and the session registry in CLAUDE_CONFIG_DIR, which defaults to the
+# personal ~/.claude. Point them at the work folder (spike 1, test 2 notes).
+export CLAUDE_CONFIG_DIR="$HOME/.claude-work"
+
+# Never pass override variables to Desktop: an inherited key or token would
+# override the account Desktop gives its Code sessions (rule 6, spike 8).
+unset ANTHROPIC_API_KEY ANTHROPIC_AUTH_TOKEN CLAUDE_CODE_OAUTH_TOKEN
+
+# Start the app (if already running, this forwards args/links to it and exits).
+setsid "$BIN" --user-data-dir="$DATA_DIR" --ozone-platform=x11 "$@" >/dev/null 2>&1 </dev/null &
+
+# Only one window watcher at a time.
+exec 9>"$LOCK"
+flock -n 9 || exit 0
+
+work_pid() {
+    for p in $(pgrep -x claude-desktop); do
+        # Electron rewrites argv into one space-separated string, so match substrings.
+        cmd=$(tr '\0' ' ' < /proc/$p/cmdline 2>/dev/null)
+        [[ "$cmd" == *"--user-data-dir=$DATA_DIR "* ]] || continue
+        [[ "$cmd" == *" --type="* ]] && continue
+        echo "$p"; return
+    done
+}
+
+# Relabel its windows while it runs. The PID is looked up every pass because the
+# app may re-exec itself on startup; stop after ~30s with no instance found.
+n=0; misses=0
+while [ $misses -lt 60 ]; do
+    PID=$(work_pid)
+    if [ -z "$PID" ]; then misses=$((misses+1)); sleep 0.5; continue; fi
+    misses=0
+    for w in $(xdotool search --pid "$PID" --class 'com.anthropic' 2>/dev/null); do
+        xdotool set_window --classname "$CLASS" --class "$CLASS" "$w" 2>/dev/null
+    done
+    n=$((n+1)); [ $n -lt 120 ] && sleep 0.25 || sleep 2
+done

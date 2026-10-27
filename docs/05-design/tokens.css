@@ -1,0 +1,170 @@
+/* Facet design tokens v1.0 · 2026-10-25
+   Single source of truth for colour, type, space, radius, elevation, motion and layers.
+   Light values on :root; dark values for system dark (unless data-theme="light") and for data-theme="dark".
+   All text colours meet WCAG AA (4.5:1) on --surface; see DESIGN-SYSTEM.md for the measured ratios. */
+
+:root {
+  /* ---- neutrals ---- */
+  --bg: #F3F4F6;          /* page behind the window */
+  --surface: #FFFFFF;     /* cards, panels, window body */
+  --surface-2: #F9FAFB;   /* nav, headers, chrome */
+  --sunk: #EEF0F3;        /* inputs, tracks, wells */
+  --rail: #E9EBEF;        /* account rail */
+  --line: #E1E4E9;        /* borders */
+  --line-2: #ECEEF2;      /* dividers inside a card */
+  --ink: #0D1015;         /* primary text, primary buttons */
+  --ink-2: #4A515D;       /* secondary text  · 8.0:1 */
+  --ink-3: #6B7380;       /* hints, labels   · 4.8:1 */
+
+  /* ---- interaction ---- */
+  --focus: #3D63FF;
+  --link: #2F4FE0;        /* 6.3:1 */
+
+  /* ---- semantic ---- */
+  --ok: #067A53;   --ok-soft: #DDF5EC;    /* 5.4:1 on surface, 4.7:1 on ok-soft (D-014) */
+  --warn: #9A5C00; --warn-soft: #FDF0D8;  /* 5.4:1 */
+  --bad: #C2263C;  --bad-soft: #FCE3E7;   /* 5.8:1 */
+
+  /* ---- account identity (facets) ---- */
+  --facet-1: #0FA595; --on-facet-1: #0D1015;  /* teal   */
+  --facet-2: #7C4DEB; --on-facet-2: #FFFFFF;  /* violet */
+  --facet-3: #E23D63; --on-facet-3: #0D1015;  /* rose   */
+  --facet-4: #D98300; --on-facet-4: #0D1015;  /* amber  */
+  --facet-5: #2F7BEB; --on-facet-5: #0D1015;  /* blue   */
+  --facet-6: #5E9E12; --on-facet-6: #0D1015;  /* green  */
+
+  /* ---- data viz (token types) ---- */
+  --viz-cache-read: var(--facet-5);
+  --viz-cache-write: var(--facet-1);
+  --viz-input: var(--facet-2);
+  --viz-output: var(--facet-4);
+
+  /* ---- typography ---- */
+  --font-display: "Bricolage Grotesque", "Geist", system-ui, sans-serif;
+  --font-body: "Geist", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-arabic: "IBM Plex Sans Arabic", "Geist", system-ui, sans-serif;
+
+  --text-2xs: 10.5px;  /* axis ticks */
+  --text-xs: 11px;     /* eyebrows, tags, kbd */
+  --text-sm: 12px;     /* hints, meta */
+  --text-base: 13px;   /* controls, table cells */
+  --text-md: 14px;     /* body */
+  --text-lg: 16px;     /* card titles */
+  --text-xl: 18px;     /* modal titles */
+  --text-2xl: 24px;    /* view titles, stat values */
+  --text-3xl: 28px;    /* brand */
+  --text-4xl: 36px;    /* marketing headline */
+
+  --leading-tight: 1.15;
+  --leading-normal: 1.5;
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-display: 650;
+  --tracking-display: -0.03em;
+  --tracking-label: 0.06em;
+
+  /* ---- space (4px base) ---- */
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 6px;
+  --space-4: 8px;
+  --space-5: 12px;
+  --space-6: 16px;
+  --space-7: 20px;
+  --space-8: 24px;
+  --space-9: 32px;
+  --space-10: 40px;
+  --space-11: 48px;
+  --space-12: 64px;
+
+  /* ---- radius ---- */
+  --radius-xs: 4px;    /* ticks, tiny chips */
+  --radius-sm: 6px;    /* code, kbd */
+  --radius-md: 8px;    /* small buttons, nav items, avatars-sm */
+  --radius-lg: 10px;   /* buttons, inputs, segmented */
+  --radius-xl: 14px;   /* cards */
+  --radius-2xl: 16px;  /* window, modals, account cards */
+  --radius-full: 999px;
+
+  /* ---- elevation ---- */
+  --shadow-1: 0 1px 1px rgba(13,16,21,.04);
+  --shadow-2: 0 1px 2px rgba(13,16,21,.05), 0 8px 28px -10px rgba(13,16,21,.18);
+  --shadow-3: 0 24px 70px -20px rgba(13,16,21,.35);
+
+  /* ---- motion ---- */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --ease-out: cubic-bezier(.2,.8,.2,1);
+  --ease-in-out: cubic-bezier(.4,0,.2,1);
+
+  /* ---- layers ---- */
+  --z-sticky: 10;
+  --z-menu: 30;
+  --z-drawer: 40;
+  --z-overlay: 50;
+  --z-toast: 60;
+
+  /* ---- scrim behind modals (D-014) ---- */
+  --scrim: rgba(13,16,21,.4);
+
+  /* ---- component sizes from DESIGN-SYSTEM.md §4 (D-014) ---- */
+  --avatar-sm: 26px;
+  --avatar-md: 40px;
+  --avatar-lg: 42px;
+  --avatar-xl: 96px;   /* account picture editor */
+  --toggle-width: 34px;
+  --toggle-height: 20px;
+  --toggle-knob: 16px;
+  --step-dot: 20px;
+  --card-min: 340px;
+  --modal-width: 560px;
+  --drawer-width: 480px;
+  --toast-width: 400px;
+  --spin: 800ms;
+
+  /* ---- layout ---- */
+  --rail-width: 64px;
+  --nav-width: 212px;
+  --chrome-height: 40px;
+  --control-height-sm: 28px;
+  --control-height: 34px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #08090B; --surface: #111317; --surface-2: #15181D; --sunk: #0C0E11; --rail: #0B0D10;
+    --line: #22262D; --line-2: #1A1D23;
+    --ink: #EEF0F4; --ink-2: #A4ABB7; --ink-3: #858D99;
+    --focus: #7590FF; --link: #8EA3FF;
+    --ok: #2FD49A; --ok-soft: #0F2A20; --warn: #F2B24B; --warn-soft: #2E220C; --bad: #FF6B81; --bad-soft: #35141B;
+    --facet-1: #2DD4BF; --facet-2: #A78BFA; --facet-3: #FB7194; --facet-4: #FBBF24; --facet-5: #60A5FA; --facet-6: #A3E635;
+    --on-facet-1: #0D1015; --on-facet-2: #0D1015; --on-facet-3: #0D1015; --on-facet-4: #0D1015; --on-facet-5: #0D1015; --on-facet-6: #0D1015;
+    --shadow-1: 0 1px 1px rgba(0,0,0,.3);
+    --shadow-2: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.7);
+    --shadow-3: 0 30px 80px -20px rgba(0,0,0,.8);
+    --scrim: rgba(0,0,0,.6);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #08090B; --surface: #111317; --surface-2: #15181D; --sunk: #0C0E11; --rail: #0B0D10;
+  --line: #22262D; --line-2: #1A1D23;
+  --ink: #EEF0F4; --ink-2: #A4ABB7; --ink-3: #858D99;
+  --focus: #7590FF; --link: #8EA3FF;
+  --ok: #2FD49A; --ok-soft: #0F2A20; --warn: #F2B24B; --warn-soft: #2E220C; --bad: #FF6B81; --bad-soft: #35141B;
+  --facet-1: #2DD4BF; --facet-2: #A78BFA; --facet-3: #FB7194; --facet-4: #FBBF24; --facet-5: #60A5FA; --facet-6: #A3E635;
+  --on-facet-1: #0D1015; --on-facet-2: #0D1015; --on-facet-3: #0D1015; --on-facet-4: #0D1015; --on-facet-5: #0D1015; --on-facet-6: #0D1015;
+  --shadow-1: 0 1px 1px rgba(0,0,0,.3);
+  --shadow-2: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px -12px rgba(0,0,0,.7);
+  --shadow-3: 0 30px 80px -20px rgba(0,0,0,.8);
+  --scrim: rgba(0,0,0,.6);
+  color-scheme: dark;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-base: 0ms; --dur-slow: 0ms; }
+}

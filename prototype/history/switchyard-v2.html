@@ -1,0 +1,1203 @@
+<title>Switchyard</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;600&family=Onest:wght@400;500;600&family=Martian+Mono:wght@400;500&family=Noto+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: a real desktop-app window (sidebar + workspace) under a slim product header; second tab is the written blueprint.
+   Concept: a rail switchyard — every account is a track, links and folders are switched onto the right one. */
+:root{
+  --bg:#E6EBF0; --win:#F8FAFC; --side:#EDF1F5; --panel:#FFFFFF; --sunk:#F1F4F7;
+  --line:#D3DBE3; --line2:#E3E8EE;
+  --ink:#13202B; --ink2:#475665; --ink3:#748391;
+  --accent:#D88A0E; --accent-ink:#8F5800; --accent-soft:#FBEBCF; --on-accent:#1A1204;
+  --ok:#1D8A57; --ok-soft:#DDF3E8; --warn:#A86A06; --warn-soft:#FBEED3; --bad:#BF3A2E; --bad-soft:#F9E1DE;
+  --p1:#128585; --p2:#6A4DD6; --p3:#C9476F; --p4:#2C78C9; --p5:#5C8A16; --p6:#B4561A;
+  --shadow:0 1px 2px rgba(19,32,43,.06),0 12px 40px -12px rgba(19,32,43,.22);
+  --f-display:"Unbounded","Onest",system-ui,sans-serif;
+  --f-body:"Onest","Noto Sans Arabic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Martian Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1117; --win:#121A22; --side:#0F161D; --panel:#18222C; --sunk:#141D26;
+  --line:#26323E; --line2:#1F2A35;
+  --ink:#E5ECF2; --ink2:#A6B3BF; --ink3:#71808D;
+  --accent:#F2A53B; --accent-ink:#F7BE6A; --accent-soft:#3A2A10; --on-accent:#1A1204;
+  --ok:#3BC985; --ok-soft:#12301F; --warn:#E8B24C; --warn-soft:#33270F; --bad:#F06B5D; --bad-soft:#3A1915;
+  --p1:#2EC2BE; --p2:#9B83FF; --p3:#F07399; --p4:#5BA6F5; --p5:#93C445; --p6:#EE8A4A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 50px -14px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1117; --win:#121A22; --side:#0F161D; --panel:#18222C; --sunk:#141D26;
+  --line:#26323E; --line2:#1F2A35;
+  --ink:#E5ECF2; --ink2:#A6B3BF; --ink3:#71808D;
+  --accent:#F2A53B; --accent-ink:#F7BE6A; --accent-soft:#3A2A10; --on-accent:#1A1204;
+  --ok:#3BC985; --ok-soft:#12301F; --warn:#E8B24C; --warn-soft:#33270F; --bad:#F06B5D; --bad-soft:#3A1915;
+  --p1:#2EC2BE; --p2:#9B83FF; --p3:#F07399; --p4:#5BA6F5; --p5:#93C445; --p6:#EE8A4A;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 18px 50px -14px rgba(0,0,0,.6);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:22px 56px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.mono{font-family:var(--f-mono);font-size:.82em;letter-spacing:-.01em}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1240px;margin:0 auto;display:grid;gap:18px}
+
+/* ---------- product header ---------- */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px}
+.brand{display:flex;gap:14px;align-items:center;min-width:0}
+.brand svg{flex:none}
+.brand h1{font-family:var(--f-display);font-weight:600;font-size:26px;letter-spacing:-.02em;margin:0;line-height:1.1}
+.brand p{margin:3px 0 0;color:var(--ink2);text-wrap:balance}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:6px 13px;border-radius:999px;color:var(--ink2);font-weight:500;font-size:13px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--win)}
+.disclaimer{font-size:12px;color:var(--ink3)}
+
+/* ---------- window ---------- */
+.window{position:relative;background:var(--win);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden;display:grid;grid-template-rows:auto 1fr;height:780px}
+.chrome{height:42px;display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--side);font-size:13px;color:var(--ink2);user-select:none}
+.chrome .ttl{flex:1;text-align:center;font-weight:600;color:var(--ink)}
+.lights{display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.lights i:nth-child(1){background:#FF5F57}.lights i:nth-child(2){background:#FEBC2E}.lights i:nth-child(3){background:#28C840}
+.gnome{display:flex;gap:8px}.gnome i{width:22px;height:22px;border-radius:50%;background:var(--line2);display:grid;place-items:center;font-style:normal;font-size:11px;color:var(--ink2)}
+.winctl{display:flex;margin-right:-12px;align-self:stretch}.winctl i{width:44px;display:grid;place-items:center;font-style:normal;color:var(--ink2)}
+.chrome.windows .ttl{text-align:left}
+.app{display:grid;grid-template-columns:224px minmax(0,1fr);min-height:0}
+.side{background:var(--side);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;gap:2px;padding:14px 10px;overflow:auto}
+.side .grp{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);padding:12px 10px 4px}
+.nav{display:flex;align-items:center;gap:10px;border:0;background:none;text-align:start;padding:7px 10px;border-radius:8px;color:var(--ink2);font-weight:500;white-space:nowrap}
+.nav svg{flex:none;opacity:.8}
+.nav:hover{background:var(--line2);color:var(--ink)}
+.nav[aria-current="page"]{background:var(--panel);color:var(--ink);box-shadow:0 0 0 1px var(--line)}
+.nav .cnt{margin-inline-start:auto;font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.nav .cnt.alert{color:var(--bad);font-weight:600}
+.sidefoot{margin-top:auto;padding:12px 10px 2px;display:grid;gap:8px;font-size:12px;color:var(--ink3)}
+.kbd{font-family:var(--f-mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:1px 5px;background:var(--panel);color:var(--ink2)}
+.palbtn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 10px;color:var(--ink3);text-align:start}
+.palbtn span{flex:1}
+.main{overflow:auto;padding:24px 28px 40px;min-width:0;position:relative}
+.vh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:18px}
+.vh h2{font-family:var(--f-display);font-weight:500;font-size:20px;letter-spacing:-.015em;margin:0}
+.vh p{margin:4px 0 0;color:var(--ink2);max-width:62ch}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 12px;font-weight:500;font-size:13px;white-space:nowrap}
+.btn:hover{border-color:var(--ink3)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.btn.pri:hover{filter:brightness(1.05)}
+.btn.ghost{background:none;border-color:transparent;color:var(--ink2)}
+.btn.ghost:hover{background:var(--line2)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:2px 9px;border-radius:999px;background:var(--sunk);color:var(--ink2);border:1px solid var(--line2);white-space:nowrap}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-soft);color:var(--ok);border-color:transparent}
+.pill.warn{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.pill.bad{background:var(--bad-soft);color:var(--bad);border-color:transparent}
+.pill.ex{border-style:dashed;background:none;color:var(--ink3)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r)}
+.muted{color:var(--ink3)}
+.sec{display:grid;gap:12px;margin-top:22px}
+.sec>h3{margin:0;font-size:13px;font-weight:600;letter-spacing:.01em}
+.hint{font-size:12px;color:var(--ink3)}
+
+/* summary strip */
+.strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border:1px solid var(--line);border-radius:var(--r);background:var(--panel);margin-bottom:16px}
+.strip>div{padding:12px 16px;display:grid;gap:2px;min-width:0}
+.strip>div+div{border-inline-start:1px solid var(--line2)}
+.strip b{font-weight:600}
+.strip small{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+
+/* profile cards */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.pcard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:14px;min-width:0}
+.pcard.on{box-shadow:0 0 0 1px color-mix(in srgb,var(--pc) 40%,transparent)}
+.ph{display:flex;gap:12px;align-items:center;min-width:0}
+.mono-badge{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;font-family:var(--f-display);font-weight:600;font-size:16px;color:#fff;background:var(--pc);flex:none;position:relative}
+.mono-badge.sm{width:24px;height:24px;border-radius:7px;font-size:11px}
+.mono-badge .live{position:absolute;right:-3px;bottom:-3px;width:12px;height:12px;border-radius:50%;background:var(--ok);border:2px solid var(--panel)}
+.ph .who{min-width:0;flex:1}
+.ph .who b{display:block;font-size:15px}
+.ph .who span{display:block;color:var(--ink3);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tags{display:flex;flex-wrap:wrap;gap:6px}
+.meter{display:grid;gap:5px}
+.meter .row{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink2)}
+.bar{height:6px;border-radius:99px;background:var(--sunk);overflow:hidden;box-shadow:inset 0 0 0 1px var(--line2)}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--pc,var(--accent));transition:width .6s ease}
+.bar i.hot{background:var(--bad)}
+.surf{display:flex;flex-wrap:wrap;gap:6px}
+.surf span{font-size:12px;display:inline-flex;gap:6px;align-items:center;color:var(--ink2);background:var(--sunk);border-radius:6px;padding:3px 8px}
+.surf span.off{opacity:.55;text-decoration:line-through}
+.pf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px solid var(--line2);padding-top:12px}
+.pf .sp{flex:1}
+.confirm{display:flex;gap:8px;align-items:center;font-size:12px;color:var(--bad)}
+
+/* list rows */
+.rows{display:grid}
+.rowi{display:grid;align-items:center;gap:12px;padding:11px 14px;border-top:1px solid var(--line2)}
+.rowi:first-child{border-top:0}
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:start;padding:10px 14px;border-top:1px solid var(--line2);vertical-align:middle}
+thead th{border-top:0;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3);font-weight:600;background:var(--sunk)}
+td.c,th.c{text-align:center}
+
+/* toggles */
+.tog{appearance:none;width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;border:0;flex:none;transition:background .2s}
+.tog::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tog[aria-checked="true"]{background:var(--ok)}
+.tog[aria-checked="true"]::after{transform:translateX(14px)}
+[dir="rtl"] .tog[aria-checked="true"]::after{transform:translateX(-14px)}
+.cell{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--sunk);display:inline-grid;place-items:center}
+.cell[aria-pressed="true"]{background:var(--pc);border-color:var(--pc);color:#fff}
+
+/* inputs */
+.field{display:grid;gap:6px}
+.field label{font-size:12px;font-weight:500;color:var(--ink2)}
+.inp{border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:8px 11px;width:100%;min-width:0}
+.inp:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-soft)}
+.inrow{display:flex;gap:8px;flex-wrap:wrap}
+.inrow .inp{flex:1 1 240px}
+.result{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-radius:var(--r);background:var(--sunk);border:1px dashed var(--line);font-size:13px}
+code.cmd{font-family:var(--f-mono);font-size:12px;background:var(--panel);border:1px solid var(--line2);border-radius:6px;padding:3px 7px;overflow-wrap:anywhere}
+
+/* router diagram */
+.yard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 6px 0;overflow-x:auto}
+.yard svg{display:block;width:100%;min-width:560px;height:auto}
+.trk{fill:none;stroke:var(--line);stroke-width:5;stroke-linecap:round}
+.trk.tie{stroke:var(--line2);stroke-width:11;stroke-dasharray:2 9}
+.trk.lit{stroke:var(--pc);}
+.yard text{fill:var(--ink2);font-family:var(--f-body);font-size:13px}
+.yard .lbl{fill:var(--ink);font-weight:600}
+.yard .sub{fill:var(--ink3);font-size:11px}
+.lever{fill:var(--panel);stroke:var(--ink3);stroke-width:2}
+.train{fill:var(--accent)}
+.ask{position:absolute;inset:0;background:color-mix(in srgb,var(--win) 70%,transparent);display:grid;place-items:center;z-index:30;backdrop-filter:blur(2px)}
+.askbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;width:min(380px,calc(100% - 32px));display:grid;gap:12px}
+.askbox h4{margin:0;font-size:15px}
+.askbox .opts{display:grid;gap:6px}
+.askbox .opt{display:flex;gap:10px;align-items:center;border:1px solid var(--line);background:var(--sunk);border-radius:9px;padding:8px 10px;text-align:start}
+.askbox .opt:hover{border-color:var(--pc)}
+
+/* chart */
+.chart{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 8px;overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:480px;height:auto}
+.chart .ax{fill:var(--ink3);font-size:11px;font-family:var(--f-body)}
+.chart .grid{stroke:var(--line2);stroke-width:1}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:12px;color:var(--ink2);padding:4px 2px 6px}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend i{width:10px;height:10px;border-radius:3px;background:var(--pc)}
+
+/* palette, modal, toasts */
+.overlay{position:absolute;inset:0;background:color-mix(in srgb,var(--ink) 28%,transparent);z-index:40;display:flex;justify-content:center;align-items:flex-start;padding:70px 16px 16px}
+.pal{width:min(560px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.pal input{border:0;border-bottom:1px solid var(--line);width:100%;padding:14px 16px;font-size:15px;background:none;outline:none}
+.pal ul{list-style:none;margin:0;padding:6px;max-height:340px;overflow:auto}
+.pal li{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:8px;cursor:pointer}
+.pal li[aria-selected="true"]{background:var(--accent-soft)}
+.pal li .k{margin-inline-start:auto;font-size:11px;color:var(--ink3)}
+.modal{width:min(620px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);display:grid;max-height:calc(100% - 20px);overflow:auto}
+.modal header,.modal footer{padding:16px 18px;display:flex;align-items:center;gap:10px}
+.modal header{border-bottom:1px solid var(--line2)}
+.modal header h3{margin:0;font-family:var(--f-display);font-weight:500;font-size:17px;flex:1}
+.modal footer{border-top:1px solid var(--line2);justify-content:flex-end}
+.modal .body{padding:18px;display:grid;gap:16px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap}
+.swatches button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;background:var(--pc)}
+.swatches button[aria-pressed="true"]{border-color:var(--ink);box-shadow:0 0 0 2px var(--panel) inset}
+.checks{display:grid;gap:8px}
+.checks label{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.checks input{margin-top:3px;accent-color:var(--accent)}
+.preview{background:var(--sunk);border:1px solid var(--line2);border-radius:10px;padding:12px 14px;display:grid;gap:7px;font-size:12.5px}
+.preview div{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.preview span:first-child{color:var(--ink3)}
+.toasts{position:absolute;inset-inline-end:16px;bottom:16px;display:grid;gap:8px;z-index:50;pointer-events:none;max-width:calc(100% - 32px)}
+.toast{background:var(--ink);color:var(--win);padding:10px 14px;border-radius:10px;font-size:13px;box-shadow:var(--shadow);animation:tin .25s ease both;max-width:380px}
+.toast code{font-family:var(--f-mono);font-size:11.5px;opacity:.85}
+@keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.menu{position:absolute;z-index:20;background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:5px;display:grid;min-width:190px}
+.menu button{border:0;background:none;text-align:start;padding:7px 10px;border-radius:7px;font-size:13px}
+.menu button:hover{background:var(--sunk)}
+
+/* doctor */
+.chk{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px 14px;border-top:1px solid var(--line2)}
+.chk:first-child{border-top:0}
+.chk .ic{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;background:var(--ink3)}
+.chk .ic.ok{background:var(--ok)}.chk .ic.warn{background:var(--warn)}.chk .ic.bad{background:var(--bad)}
+.chk .ic.run{background:none;border:2px solid var(--line);border-top-color:var(--accent);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chk b{display:block;font-weight:600}
+.chk p{margin:2px 0 0;color:var(--ink2);font-size:13px}
+
+/* settings */
+.set{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:13px 16px;border-top:1px solid var(--line2)}
+.set:first-child{border-top:0}
+.set b{display:block;font-weight:500}
+.set span{font-size:12px;color:var(--ink3)}
+.set select{border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--panel)}
+
+/* blueprint */
+.bp{display:grid;gap:26px}
+.bp .lead{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px clamp(18px,4vw,36px);display:grid;gap:12px}
+.bp h2{font-family:var(--f-display);font-weight:500;font-size:clamp(20px,2.6vw,28px);letter-spacing:-.02em;margin:0;text-wrap:balance;max-width:28ch}
+.bp h3{font-family:var(--f-display);font-weight:500;font-size:17px;margin:0 0 4px;letter-spacing:-.01em}
+.bp p{margin:0;max-width:68ch;color:var(--ink2)}
+.bp .eyebrow{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent-ink);font-weight:600}
+.facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.fact{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;display:grid;gap:8px;align-content:start}
+.fact .big{font-family:var(--f-display);font-weight:600;font-size:28px;letter-spacing:-.02em}
+.fact p{font-size:13.5px}
+.fact a{color:var(--accent-ink);font-size:12.5px}
+.diff{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.diff div{border-top:2px solid var(--ink);padding-top:10px}
+.diff b{display:block;margin-bottom:3px}
+.diff p{font-size:13.5px}
+.arch{display:grid;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;overflow-x:auto}
+.arch .layer{display:grid;grid-template-columns:150px minmax(0,1fr);gap:12px;align-items:stretch;min-width:600px}
+.arch .lname{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:600;padding-top:9px}
+.arch .boxes{display:flex;flex-wrap:wrap;gap:8px}
+.arch .box{border:1px solid var(--line);background:var(--sunk);border-radius:8px;padding:7px 11px;font-size:13px}
+.arch .box.k{border-color:var(--accent);background:var(--accent-soft)}
+.arch .box small{display:block;color:var(--ink3);font-size:11px}
+.arch .flow{min-width:600px;padding-inline-start:162px;color:var(--ink3);font-size:12px}
+.phases{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.phase{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;display:grid;gap:8px;align-content:start}
+.phase .n{font-family:var(--f-mono);font-size:11px;color:var(--accent-ink)}
+.phase ul{margin:0;padding-inline-start:18px;color:var(--ink2);font-size:13px;display:grid;gap:4px}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px}
+.rules div{display:grid;grid-template-columns:auto 1fr;gap:10px;font-size:13.5px;color:var(--ink2)}
+.rules div::before{content:"";width:8px;height:8px;border-radius:2px;background:var(--accent);margin-top:6px}
+.src{columns:2;column-gap:28px;font-size:13px;margin:0;padding-inline-start:18px}
+.src li{margin-bottom:6px;break-inside:avoid}
+.src a{color:var(--accent-ink)}
+
+/* observatory */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;display:grid;gap:3px;min-width:0}
+.kpi small{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink3)}
+.kpi b{font-family:var(--f-display);font-weight:500;font-size:22px;letter-spacing:-.02em}
+.kpi span{font-size:12px;color:var(--ink2)}
+.crumbs{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:13px}
+.crumbs button{border:0;background:none;color:var(--accent-ink);padding:2px 4px;border-radius:5px;font-weight:500}
+.crumbs button:last-child{color:var(--ink);cursor:default}
+.crumbs i{color:var(--ink3);font-style:normal}
+.drill{display:grid}
+.drow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.7fr) 80px 70px;gap:12px;align-items:center;padding:10px 14px;border-top:1px solid var(--line2);text-align:start;background:none;border-inline:0;border-bottom:0;width:100%}
+.drow:first-child{border-top:0}
+button.drow:hover{background:var(--sunk)}
+.drow .bar{height:8px}
+.split{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--sunk)}
+.split i{display:block;height:100%}
+.heat{display:grid;grid-template-columns:34px repeat(24,minmax(0,1fr));gap:3px;font-size:10px;color:var(--ink3);min-width:520px}
+.heat i{aspect-ratio:1;border-radius:3px;background:color-mix(in srgb,var(--accent) calc(var(--v)*100%),var(--sunk))}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+
+/* bridge */
+.live{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--line2)}
+.live:first-child{border-top:0}
+.st{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:500}
+.st i{width:8px;height:8px;border-radius:50%;background:var(--ink3)}
+.st.working i{background:var(--ok);box-shadow:0 0 0 3px var(--ok-soft);animation:pulse 1.6s ease-in-out infinite}
+.st.waiting i{background:var(--warn)}
+@keyframes pulse{50%{box-shadow:0 0 0 6px transparent}}
+.thread{display:grid;gap:10px}
+.msg{display:grid;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.msg .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--ink3)}
+.msg .reply{border-inline-start:2px solid var(--line);padding-inline-start:10px;color:var(--ink2);font-size:13px}
+.msg.blocked{border-color:var(--bad);background:var(--bad-soft)}
+.packet{display:flex;flex-wrap:wrap;gap:6px}
+textarea.inp{resize:vertical;min-height:70px}
+
+/* RTL tweaks */
+[dir="rtl"]{font-family:"Noto Sans Arabic",var(--f-body)}
+[dir="rtl"] .vh h2{font-family:"Noto Sans Arabic",var(--f-body);font-weight:600}
+
+@media (max-width:980px){.phases{grid-template-columns:repeat(2,minmax(0,1fr))}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:640px){.drow{grid-template-columns:minmax(0,1fr) 70px 60px}.drow .bar{display:none}.live{grid-template-columns:auto minmax(0,1fr)}.live>:nth-child(n+3){grid-column:2}}
+@media (max-width:860px){
+  .window{height:auto}
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{flex-direction:row;overflow-x:auto;border-inline-end:0;border-bottom:1px solid var(--line);padding:8px}
+  .side .grp,.sidefoot{display:none}
+  .main{overflow:visible;padding:18px 16px 28px}
+  .cards{grid-template-columns:minmax(0,1fr)}
+  .facts{grid-template-columns:minmax(0,1fr)}
+  .rules{grid-template-columns:minmax(0,1fr)}
+  .src{columns:1}
+  .overlay{position:fixed}
+  .toasts{position:fixed}
+}
+@media (max-width:560px){
+  .strip{grid-template-columns:minmax(0,1fr)}
+  .strip>div+div{border-inline-start:0;border-top:1px solid var(--line2)}
+  .phases{grid-template-columns:minmax(0,1fr)}
+  .chrome .ttl{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true">
+        <rect x="1" y="1" width="44" height="44" rx="12" fill="var(--ink)"/>
+        <path d="M9 30 H19 C25 30 26 14 33 14 H38" fill="none" stroke="var(--accent)" stroke-width="3.2" stroke-linecap="round"/>
+        <path d="M9 30 H38" fill="none" stroke="var(--win)" stroke-width="3.2" stroke-linecap="round"/>
+        <circle cx="19" cy="30" r="3.4" fill="var(--ink)" stroke="var(--win)" stroke-width="2"/>
+      </svg>
+      <div>
+        <h1>Switchyard</h1>
+        <p>Every Claude account on one desktop, switched onto the right track. Linux, Windows and macOS.</p>
+      </div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View">
+        <button id="tab-proto" aria-pressed="true">Prototype</button>
+        <button id="tab-bp" aria-pressed="false">Blueprint</button>
+      </div>
+      <div class="seg" role="group" aria-label="Platform" id="osSeg">
+        <button data-os="linux" aria-pressed="true">Linux</button>
+        <button data-os="windows" aria-pressed="false">Windows</button>
+        <button data-os="macos" aria-pressed="false">macOS</button>
+      </div>
+    </div>
+  </header>
+
+  <section id="proto">
+    <div class="window" id="win">
+      <div class="chrome" id="chrome"></div>
+      <div class="app" id="app">
+        <nav class="side" id="side" aria-label="Sections"></nav>
+        <main class="main" id="main" tabindex="-1"></main>
+      </div>
+      <div class="toasts" id="toasts" aria-live="polite"></div>
+    </div>
+    <p class="disclaimer" style="margin:10px 2px 0">Concept prototype with sample data. Freelance and Client Lab are placeholder names for your two new accounts. Switchyard is an independent idea, not an Anthropic product.</p>
+  </section>
+
+  <section id="blueprint" hidden></section>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem("syd:"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("syd:"+k,JSON.stringify(v))}catch(e){}}};
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------------- state ---------------- */
+const now=Date.now(), M=60000;
+const S={
+  os:store.get("os","linux"), view:store.get("view","profiles"), tab:store.get("tab","proto"), lang:"en",
+  profiles:[
+    {id:"personal",name:"Personal",email:"you@personal.example",plan:"Pro",pc:"p1",running:true,desktop:true,cli:true,session:38,weekly:52,reset:now+134*M,example:false},
+    {id:"work",name:"Work",email:"you@company.example",plan:"Max 20x",pc:"p2",running:true,desktop:true,cli:true,session:71,weekly:44,reset:now+72*M,example:false},
+    {id:"freelance",name:"Freelance",email:"you@freelance.example",plan:"Max 5x",pc:"p3",running:false,desktop:true,cli:true,session:12,weekly:20,reset:now+251*M,example:true},
+    {id:"lab",name:"Client Lab",email:"you@client.example",plan:"Team",pc:"p4",running:false,desktop:true,cli:false,session:0,weekly:8,reset:null,example:true}
+  ],
+  confirmRemove:null,
+  routes:[
+    {when:"Sign-in link while a profile is waiting for login",to:"pending"},
+    {when:"Opened from Chrome profile “Work”",to:"work"},
+    {when:"claude.ai/project/… links you opened before",to:"remember"},
+    {when:"Anything else",to:"ask"}
+  ],
+  recent:[
+    {url:"claude://claude.ai/login/callback?code=…",to:"work",t:"4 min ago",why:"Work was waiting for sign-in"},
+    {url:"claude://claude.ai/new?surface=chat",to:"personal",t:"1 h ago",why:"You picked Personal"},
+    {url:"claude://code/new?source=desktop_action",to:"freelance",t:"Yesterday",why:"Dock action from Freelance"}
+  ],
+  folders:[
+    {glob:"~/work/**",to:"work"},{glob:"~/clients/acme/**",to:"lab"},{glob:"~/freelance/**",to:"freelance"},{glob:"**",to:"personal"}
+  ],
+  mcp:[
+    {name:"filesystem",kind:"Local",status:"ok",on:{personal:true,work:true,freelance:true,lab:false}},
+    {name:"github",kind:"Remote",status:"ok",on:{personal:true,work:true,freelance:false,lab:false}},
+    {name:"postgres-prod",kind:"Local",status:"bad",on:{personal:false,work:true,freelance:false,lab:false}},
+    {name:"playwright",kind:"Local",status:"ok",on:{personal:true,work:false,freelance:true,lab:true}},
+    {name:"context7",kind:"Remote",status:"ok",on:{personal:true,work:true,freelance:true,lab:true}},
+    {name:"slack",kind:"Remote",status:"warn",on:{personal:false,work:true,freelance:false,lab:false}}
+  ],
+  kit:[
+    {name:"Skills",count:12,desc:"Reusable instructions Claude loads on demand",on:["personal","work","freelance","lab"]},
+    {name:"Subagents",count:5,desc:"Specialised helpers like a reviewer or planner",on:["personal","work","freelance"]},
+    {name:"Slash commands",count:9,desc:"Your /shortcuts in Claude Code",on:["personal","work","freelance","lab"]},
+    {name:"Hooks",count:3,desc:"Automations that run before or after tools",on:["work"]},
+    {name:"Global CLAUDE.md",count:1,desc:"Rules you want every session to follow",on:["personal","freelance"]},
+    {name:"Status line",count:1,desc:"The bar under the Claude Code prompt",on:["personal","work","freelance","lab"]}
+  ],
+  sessions:[
+    {id:"9f2c41",title:"Fix flaky checkout test",project:"~/work/shop-api",p:"work",t:"Today 16:02",msgs:48},
+    {id:"1ab7e0",title:"Second Claude instance on Ubuntu",project:"~",p:"personal",t:"Today 18:40",msgs:96},
+    {id:"c03d88",title:"Landing page hero variants",project:"~/freelance/bakery-site",p:"freelance",t:"Yesterday",msgs:31},
+    {id:"77e1b2",title:"Migrate cron jobs to queues",project:"~/work/infra",p:"work",t:"Yesterday",msgs:64},
+    {id:"4d9a10",title:"Data cleaning notebook review",project:"~/clients/acme/etl",p:"lab",t:"Fri",msgs:22},
+    {id:"e58f03",title:"Rust ownership questions",project:"~/learn/rust",p:"personal",t:"Thu",msgs:17},
+    {id:"b2c6aa",title:"Invoice PDF generator",project:"~/freelance/billing",p:"freelance",t:"Wed",msgs:39}
+  ],
+  sessQ:"", sessP:"all",
+  backups:[
+    {when:"Today 09:00",size:"412 MB",scope:"All profiles",enc:true},
+    {when:"Yesterday 09:00",size:"405 MB",scope:"All profiles",enc:true},
+    {when:"Oct 18",size:"388 MB",scope:"Work only",enc:true}
+  ],
+  doctorRan:false,
+  /* Observatory: tokens in millions, cost in USD at API-equivalent prices (sample) */
+  obs:{range:"7d",path:[],
+    tree:{
+      personal:[{name:"~ (home)",sessions:[{t:"Second Claude instance on Ubuntu",tok:3.9,cost:5.1,model:"Opus 5.5"},{t:"Switchyard prototype",tok:2.4,cost:3.2,model:"Opus 5.5"}]},{name:"~/learn/rust",sessions:[{t:"Rust ownership questions",tok:.6,cost:.7,model:"Sonnet 5.5"}]}],
+      work:[{name:"~/work/shop-api",sessions:[{t:"Fix flaky checkout test",tok:9.8,cost:12.6,model:"Opus 5.5"},{t:"Add rate limiting",tok:5.1,cost:6.3,model:"Sonnet 5.5"}]},{name:"~/work/infra",sessions:[{t:"Migrate cron jobs to queues",tok:7.4,cost:9.9,model:"Opus 5.5"},{t:"Terraform drift report",tok:1.9,cost:1.6,model:"Haiku 4.5"}]}],
+      freelance:[{name:"~/freelance/bakery-site",sessions:[{t:"Landing page hero variants",tok:6.2,cost:7.9,model:"Opus 5.5"},{t:"Contact form validation",tok:1.4,cost:1.5,model:"Sonnet 5.5"}]},{name:"~/freelance/billing",sessions:[{t:"Invoice PDF generator",tok:3.1,cost:3.8,model:"Sonnet 5.5"}]}],
+      lab:[{name:"~/clients/acme/etl",sessions:[{t:"Data cleaning notebook review",tok:2.2,cost:2.4,model:"Sonnet 5.5"}]}]
+    },
+    budgets:[{p:"freelance",proj:"~/freelance/bakery-site",limit:40,used:27.3},{p:"freelance",proj:"~/freelance/billing",limit:25,used:9.8},{p:"lab",proj:"~/clients/acme/etl",limit:15,used:13.1}]
+  },
+  /* Bridge: live sessions across accounts */
+  live:[
+    {id:"s1",p:"work",project:"~/work/shop-api",task:"Running the checkout test suite",state:"working",tok:"1.2M"},
+    {id:"s2",p:"work",project:"~/work/infra",task:"Waiting for you to approve a migration plan",state:"waiting",tok:"640K"},
+    {id:"s3",p:"personal",project:"~",task:"Designing the Switchyard prototype",state:"working",tok:"2.4M"},
+    {id:"s4",p:"freelance",project:"~/freelance/bakery-site",task:"Idle for 25 min",state:"idle",tok:"310K"},
+    {id:"s5",p:"lab",project:"~/clients/acme/etl",task:"Idle for 2 h",state:"idle",tok:"95K"}
+  ],
+  walls:{lab:true},
+  relays:[
+    {from:"s3",to:"s1",kind:"Question",text:"Which Node version does shop-api pin?",reply:"v22.4, from .nvmrc. CI uses the same.",t:"12 min ago"},
+    {from:"s1",to:"s4",kind:"Snippet",text:"Shared the retry-with-backoff helper (fetchRetry.ts, 48 lines).",reply:"Received. Using it in the contact form submit.",t:"1 h ago"}
+  ],
+  br:{from:"s3",to:"s1",kind:"Question",packet:{summary:true,files:true,diff:false,todos:true,error:false}},
+  settings:{tray:true,login:true,hotkey:true,theme:"system",notify:true,threshold:80,suggest:true}
+};
+const P=id=>S.profiles.find(p=>p.id===id);
+
+/* ---------------- i18n (app window only) ---------------- */
+const T={
+ en:{control:"Control Center",bridge:"Bridge",profiles:"Profiles",usage:"Observatory",router:"Link Router",folders:"Folder Rules",mcp:"MCP Servers",kit:"Shared Kit",sessions:"Sessions",backups:"Backups",doctor:"Doctor",settings:"Settings",g1:"Accounts",g2:"Connect",g3:"Tools",g4:"Care",search:"Search or run…",running:"running"},
+ ar:{control:"مركز التحكم",bridge:"الجسر",profiles:"الحسابات",usage:"المرصد",router:"توجيه الروابط",folders:"قواعد المجلدات",mcp:"خوادم MCP",kit:"الأدوات المشتركة",sessions:"الجلسات",backups:"النسخ الاحتياطية",doctor:"الفحص",settings:"الإعدادات",g1:"الحسابات",g2:"الربط",g3:"الأدوات",g4:"الصيانة",search:"ابحث أو نفّذ…",running:"تعمل الآن"}
+};
+const t=k=>T[S.lang][k]||T.en[k];
+
+/* ---------------- platform knowledge ---------------- */
+const OS={
+  linux:{name:"Linux",
+    dir:p=>p.id==="personal"?"~/.config/Claude":`~/.config/Claude-${slugCap(p)}`,
+    cli:p=>p.id==="personal"?"~/.claude":`~/.claude-${slug(p)}`,
+    entry:p=>`App menu entry “Claude (${p.name})”`,
+    dock:"Own dock icon. On Wayland the window class is relabelled under XWayland, because Claude reports one fixed app id.",
+    link:"Registers as the handler for claude:// links through a .desktop MimeType entry.",
+    pkg:".deb, .rpm, AppImage", mod:"Ctrl"},
+  windows:{name:"Windows",
+    dir:p=>p.id==="personal"?"%APPDATA%\\Claude":`%APPDATA%\\Claude-${slugCap(p)}`,
+    cli:p=>p.id==="personal"?"%USERPROFILE%\\.claude":`%USERPROFILE%\\.claude-${slug(p)}`,
+    entry:p=>`Start menu shortcut “Claude (${p.name})”`,
+    dock:"Own taskbar group through a per-profile shortcut with its own AppUserModelID. Needs testing against each Claude release.",
+    link:"Registers claude:// under HKCU\\Software\\Classes at runtime, no installer step.",
+    pkg:".msi, .exe (NSIS)", mod:"Ctrl"},
+  macos:{name:"macOS",
+    dir:p=>p.id==="personal"?"~/Library/Application Support/Claude":`~/Library/Application Support/Claude-${slugCap(p)}`,
+    cli:p=>p.id==="personal"?"~/.claude":`~/.claude-${slug(p)}`,
+    entry:p=>`Launcher app “Claude (${p.name})” in ~/Applications`,
+    dock:"Own Dock icon through a tiny per-profile launcher app with its own bundle id.",
+    link:"Declares claude:// in Info.plist and becomes the default handler.",
+    pkg:".dmg (signed, notarized)", mod:"⌘"}
+};
+function slug(p){return p.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"profile"}
+function slugCap(p){return p.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"Profile"}
+
+/* ---------------- icons ---------------- */
+const I={
+ profiles:'<path d="M3 5.5h12M3 9h12M3 12.5h12" /><circle cx="6" cy="5.5" r="1.6" fill="currentColor"/><circle cx="11" cy="9" r="1.6" fill="currentColor"/><circle cx="8" cy="12.5" r="1.6" fill="currentColor"/>',
+ usage:'<path d="M3 14V9M7 14V5M11 14v-3M15 14V7"/>',
+ router:'<path d="M2.5 12h4c3 0 4-6 7-6h2M2.5 12h13"/>',
+ folders:'<path d="M2.5 5.5c0-.8.6-1.5 1.5-1.5h3l1.5 1.5H14c.8 0 1.5.7 1.5 1.5v6c0 .8-.7 1.5-1.5 1.5H4c-.9 0-1.5-.7-1.5-1.5z"/>',
+ mcp:'<rect x="3" y="3" width="5" height="5" rx="1"/><rect x="10" y="3" width="5" height="5" rx="1"/><rect x="3" y="10" width="5" height="5" rx="1"/><rect x="10" y="10" width="5" height="5" rx="1"/>',
+ kit:'<path d="M3 6.5h12v8H3zM6.5 6.5V4.5h5v2"/>',
+ sessions:'<path d="M3 4h12v8H8l-3 2.5V12H3z"/>',
+ backups:'<path d="M9 3v8m0 0-3-3m3 3 3-3M3 13.5v1h12v-1"/>',
+ doctor:'<path d="M2.5 9h3l1.5-4 3 8 1.5-4h4"/>',
+ settings:'<circle cx="9" cy="9" r="2.4"/><path d="M9 2.5v2M9 13.5v2M2.5 9h2M13.5 9h2M4.4 4.4l1.4 1.4M12.2 12.2l1.4 1.4M4.4 13.6l1.4-1.4M12.2 5.8l1.4-1.4"/>',
+ control:'<path d="M4 3v12M9 3v12M14 3v12"/><circle cx="4" cy="11" r="1.8" fill="var(--side)"/><circle cx="9" cy="6" r="1.8" fill="var(--side)"/><circle cx="14" cy="10" r="1.8" fill="var(--side)"/>',
+ bridge:'<path d="M2.5 12.5c2-4 4.5-6 6.5-6s4.5 2 6.5 6M2.5 12.5h13M6 12.5V9.3M12 12.5V9.3M9 12.5V6.5"/>',
+ search:'<circle cx="8" cy="8" r="4.5"/><path d="m11.5 11.5 3 3"/>',
+ plus:'<path d="M9 4v10M4 9h10"/>',
+ folder:'<path d="M2.5 5.5c0-.8.6-1.5 1.5-1.5h3l1.5 1.5H14c.8 0 1.5.7 1.5 1.5v6c0 .8-.7 1.5-1.5 1.5H4c-.9 0-1.5-.7-1.5-1.5z"/>',
+ dots:'<circle cx="4.5" cy="9" r="1.2" fill="currentColor"/><circle cx="9" cy="9" r="1.2" fill="currentColor"/><circle cx="13.5" cy="9" r="1.2" fill="currentColor"/>',
+ play:'<path d="M6 4.5v9l7-4.5z" fill="currentColor" stroke="none"/>',
+ term:'<rect x="2.5" y="3.5" width="13" height="11" rx="1.5"/><path d="m5.5 7.5 2 1.5-2 1.5M9.5 11h3"/>'
+};
+const ic=(n,s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+const badge=(p,sm)=>`<span class="mono-badge${sm?" sm":""}" style="--pc:var(--${p.pc})">${esc(p.name.trim()[0]||"?")}${!sm&&p.running?'<i class="live" title="Running"></i>':""}</span>`;
+
+/* ---------------- toasts ---------------- */
+function toast(html){const el=document.createElement("div");el.className="toast";el.innerHTML=html;$("#toasts").appendChild(el);setTimeout(()=>el.remove(),3800)}
+
+/* ---------------- chrome + sidebar ---------------- */
+function renderChrome(){
+  const c=$("#chrome"); c.className="chrome "+S.os;
+  const ttl=`<span class="ttl">Switchyard</span>`;
+  if(S.os==="macos") c.innerHTML=`<span class="lights"><i></i><i></i><i></i></span>${ttl}<span style="width:52px"></span>`;
+  else if(S.os==="windows") c.innerHTML=`${ttl}<span class="winctl"><i>&#x2013;</i><i>&#x25A2;</i><i>&#x2715;</i></span>`;
+  else c.innerHTML=`<span style="width:84px"></span>${ttl}<span class="gnome"><i>&#x2013;</i><i>&#x25A2;</i><i>&#x2715;</i></span>`;
+}
+const NAV=[["g1",["profiles","usage"]],["g2",["bridge","router","folders"]],["g3",["control","mcp","kit","sessions"]],["g4",["backups","doctor","settings"]]];
+function counts(k){
+  if(k==="profiles") return S.profiles.length;
+  if(k==="mcp"){const b=S.mcp.filter(m=>m.status==="bad").length;return b?`<span class="cnt alert">${b} issue</span>`:S.mcp.length}
+  if(k==="sessions") return S.sessions.length;
+  if(k==="bridge"){const w=S.live.filter(l=>l.state==="waiting").length;return w?`<span class="cnt alert">${w} waiting</span>`:S.live.length}
+  if(k==="doctor") return S.doctorRan?"":'<span class="cnt alert">2</span>';
+  return "";
+}
+function renderSide(){
+  const run=S.profiles.filter(p=>p.running).length;
+  $("#side").innerHTML=NAV.map(([g,items])=>`<div class="grp">${t(g)}</div>`+items.map(k=>{
+    const c=counts(k); const cnt=typeof c==="string"&&c.startsWith("<")?c:(c!==""?`<span class="cnt">${c}</span>`:"");
+    return `<button class="nav" data-nav="${k}" ${S.view===k?'aria-current="page"':""}>${ic(k==="profiles"?"profiles":k)}<span>${t(k)}</span>${cnt}</button>`}).join("")).join("")+
+  `<div class="sidefoot"><button class="palbtn" id="openPal">${ic("search",14)}<span>${t("search")}</span><span class="kbd">${OS[S.os].mod} K</span></button>
+   <div class="num">${run} / ${S.profiles.length} ${t("running")} · v0.1 concept</div></div>`;
+}
+
+/* ---------------- views ---------------- */
+const fmtLeft=ms=>{if(ms==null)return "no active window";const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}h ${String(m).padStart(2,"0")}m`:`${m}m ${String(x).padStart(2,"0")}s`};
+function meter(label,val,right){return `<div class="meter"><div class="row"><span>${label}</span><span class="num">${right}</span></div><div class="bar"><i class="${val>=S.settings.threshold?"hot":""}" style="width:${val}%"></i></div></div>`}
+function headroom(){return [...S.profiles].sort((a,b)=>a.session-b.session)[0]}
+
+const V={};
+V.profiles=()=>{
+  const run=S.profiles.filter(p=>p.running).length, hr=headroom();
+  const next=S.profiles.filter(p=>p.reset).sort((a,b)=>a.reset-b.reset)[0];
+  return `<div class="vh"><div><h2>${t("profiles")}</h2><p>Each profile is a fully separate Claude account: its own sign-in, chats, settings and dock icon.</p></div>
+   <div class="inrow"><button class="btn" data-act="quitall">Quit all</button><button class="btn pri" data-act="new">${ic("plus",14)} New profile</button></div></div>
+  <div class="strip">
+    <div><small>Running</small><b class="num">${run} of ${S.profiles.length} profiles</b></div>
+    <div><small>Lowest session use</small><b>${esc(hr.name)} <span class="muted num">· ${100-hr.session}% of session left</span></b></div>
+    <div><small>Next limit reset</small><b>${next?esc(next.name):"None"} <span class="muted num" data-live="${next?next.reset:""}">${next?"in "+fmtLeft(next.reset-Date.now()):""}</span></b></div>
+  </div>
+  <div class="cards">${S.profiles.map(card).join("")}</div>`;
+};
+function card(p){
+  const o=OS[S.os];
+  return `<article class="pcard ${p.running?"on":""}" style="--pc:var(--${p.pc})">
+    <div class="ph">${badge(p)}<div class="who"><b>${esc(p.name)}</b><span>${esc(p.email)}</span></div>
+      <button class="btn ghost sm" data-menu="${p.id}" aria-label="More for ${esc(p.name)}">${ic("dots",16)}</button></div>
+    <div class="tags"><span class="pill">${esc(p.plan)}</span>${p.running?'<span class="pill ok"><span class="dot"></span>Running</span>':'<span class="pill">Stopped</span>'}${p.example?'<span class="pill ex">example name</span>':""}</div>
+    ${meter("Session (5-hour)",p.session,`${p.session}% · <span data-live="${p.reset||""}">${p.reset?"resets in "+fmtLeft(p.reset-Date.now()):"not started"}</span>`)}
+    ${meter("Weekly",p.weekly,`${p.weekly}%`)}
+    <div class="surf"><span class="${p.desktop?"":"off"}">${ic("profiles",12)} Desktop app</span><span class="${p.cli?"":"off"}">${ic("term",12)} Claude Code <code class="mono">claude-${esc(slug(p))}</code></span></div>
+    <div class="pf">
+      ${S.confirmRemove===p.id?`<div class="confirm">Remove ${esc(p.name)}? Its data folder is kept.<button class="btn sm danger" data-act="remove" data-id="${p.id}">Remove</button><button class="btn sm" data-act="cancelrm">Keep</button></div>`:
+      `${p.running?`<button class="btn pri sm" data-act="focus" data-id="${p.id}">Show window</button><button class="btn sm" data-act="quit" data-id="${p.id}">Quit</button>`:`<button class="btn pri sm" data-act="launch" data-id="${p.id}">${ic("play",12)} Launch</button>`}
+      <button class="btn sm" data-act="term" data-id="${p.id}" ${p.cli?"":"disabled"}>${ic("term",13)} Terminal</button>
+      <span class="sp"></span><span class="hint mono" title="${esc(o.dir(p))}">${esc(o.dir(p))}</span>`}
+    </div></article>`;
+}
+
+V.usage=()=>{
+  const O=S.obs, mult={"24h":.16,"7d":1,"30d":3.8}[O.range];
+  const fT=v=>{v*=mult;return v>=1?v.toFixed(1)+"M":Math.round(v*1000)+"K"}, fC=v=>"$"+(v*mult).toFixed(2);
+  const accTot=id=>(O.tree[id]||[]).reduce((a,pr)=>{pr.sessions.forEach(s=>{a.tok+=s.tok;a.cost+=s.cost});return a},{tok:0,cost:0});
+  const all=S.profiles.reduce((a,p)=>{const x=accTot(p.id);a.tok+=x.tok;a.cost+=x.cost;return a},{tok:0,cost:0});
+  const sessN=S.profiles.reduce((n,p)=>n+(O.tree[p.id]||[]).reduce((m,pr)=>m+pr.sessions.length,0),0);
+  const types=[["Cache read",.84,"var(--p4)"],["Cache write",.08,"var(--p1)"],["Input",.045,"var(--p2)"],["Output",.035,"var(--accent)"]];
+
+  /* drill-down */
+  const [pa,pj,ss]=O.path; let crumbs=[["All accounts",0]], rows="", detail="";
+  const row=(label,sub,tok,cost,max,pc,go)=>`<${go?"button":"div"} class="drow" ${go?`data-drill='${esc(JSON.stringify(go))}'`:""} style="--pc:${pc}">
+     <div style="min-width:0"><b style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(label)}</b><span class="hint">${sub}</span></div>
+     <div class="bar"><i style="width:${Math.max(2,tok/max*100)}%"></i></div><span class="num" style="text-align:end">${fT(tok)}</span><span class="num muted" style="text-align:end">${fC(cost)}</span></${go?"button":"div"}>`;
+  if(!pa){
+    const t=S.profiles.map(p=>({p,...accTot(p.id)})), max=Math.max(...t.map(x=>x.tok),.01);
+    rows=t.map(x=>row(x.p.name,`${(O.tree[x.p.id]||[]).length} projects · ${esc(x.p.plan)}`,x.tok,x.cost,max,`var(--${x.p.pc})`,[x.p.id])).join("");
+  }else{
+    const p=P(pa); crumbs.push([p?p.name:pa,1]);
+    const projs=O.tree[pa]||[];
+    if(pj==null){
+      const t=projs.map((pr,i)=>({pr,i,tok:pr.sessions.reduce((a,s)=>a+s.tok,0),cost:pr.sessions.reduce((a,s)=>a+s.cost,0)})), max=Math.max(...t.map(x=>x.tok),.01);
+      rows=t.length?t.map(x=>row(x.pr.name,`${x.pr.sessions.length} sessions`,x.tok,x.cost,max,`var(--${p.pc})`,[pa,x.i])).join(""):`<div class="drow"><span class="muted">No Claude Code activity yet.</span></div>`;
+    }else{
+      const pr=projs[pj]; crumbs.push([pr.name,2]);
+      if(ss==null){
+        const max=Math.max(...pr.sessions.map(s=>s.tok),.01);
+        rows=pr.sessions.map((s,i)=>row(s.t,esc(s.model),s.tok,s.cost,max,`var(--${p.pc})`,[pa,pj,i])).join("");
+      }else{
+        const s=pr.sessions[ss]; crumbs.push([s.t,3]);
+        const cats=[["File reads",.34],["Tool output",.27],["System, skills, CLAUDE.md",.18],["Claude’s replies",.12],["Subagents",.06],["Your messages",.03]];
+        const calls=[["Bash · npm test (full output)",.071],["Read · src/checkout/cart.ts",.034],["Grep · “retry” across repo",.022],["Read · package-lock.json",.019],["Subagent · code reviewer",.016]];
+        const max=cats[0][1];
+        rows=cats.map(c=>row(c[0],`${Math.round(c[1]*100)}% of this session`,s.tok*c[1],s.cost*c[1],max,`var(--${p.pc})`,null)).join("");
+        detail=`<div class="sec"><h3>Heaviest single calls</h3><div class="panel rows">${calls.map(c=>`<div class="rowi" style="grid-template-columns:minmax(0,1fr) auto auto"><span class="mono" style="overflow-wrap:anywhere">${esc(c[0])}</span><span class="num">${fT(s.tok*c[1])}</span><span class="num muted">${fC(s.cost*c[1])}</span></div>`).join("")}</div>
+          <div class="result"><b>Tip</b><span>Test output is 7% of this session. Piping <code class="cmd">npm test</code> through a summary hook would save about ${fT(s.tok*.06)} next time.</span></div></div>`;
+      }
+    }
+  }
+  const crumbHtml=crumbs.map((c,i)=>`${i?"<i>›</i>":""}<button data-crumb="${c[1]}">${esc(c[0])}</button>`).join("");
+
+  /* heatmap (deterministic sample) */
+  let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+  const days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  let heat='<span></span>'+Array.from({length:24},(_,h)=>`<span style="text-align:center">${h%6===0?h:""}</span>`).join("");
+  days.forEach((d,di)=>{heat+=`<span>${d}</span>`;for(let h=0;h<24;h++){const work=h>=9&&h<=18&&di<5,eve=h>=20&&h<=23;let v=(work?.45:eve?.35:.04)+rnd()*.5;if(h<7)v*=.15;if(di>=5)v*=work?.4:1.1;v=Math.min(1,v);heat+=`<i style="--v:${v.toFixed(2)}" title="${d} ${h}:00"></i>`}});
+
+  const fc=S.profiles.filter(p=>p.weekly).map(p=>{const proj=Math.min(130,Math.round(p.weekly*1.9));return `<div class="rowi" style="grid-template-columns:auto minmax(0,1fr) auto;--pc:var(--${p.pc})">${badge(p,1)}<div><b>${esc(p.name)}</b><div class="hint">${p.weekly}% used now · at this pace about ${proj}% by the weekly reset</div></div>${proj>=100?'<span class="pill bad">Hits limit Thu 14:00</span>':proj>=80?'<span class="pill warn">Close</span>':'<span class="pill ok">Fine</span>'}</div>`}).join("");
+
+  return `<div class="vh"><div><h2>${t("usage")}</h2><p>Every token, on every layer: account, project, session, down to the single tool call that cost the most.</p></div>
+    <div class="inrow" style="align-items:center"><span class="pill ex">sample data</span><div class="seg">${["24h","7d","30d"].map(r=>`<button data-range="${r}" aria-pressed="${O.range===r}">${r}</button>`).join("")}</div></div></div>
+  <div class="kpis">
+    <div class="kpi"><small>Tokens</small><b class="num">${fT(all.tok)}</b><span>${sessN} sessions, ${S.profiles.length} accounts</span></div>
+    <div class="kpi"><small>API-equivalent cost</small><b class="num">${fC(all.cost)}</b><span>What this would cost on the API</span></div>
+    <div class="kpi"><small>Cache hit rate</small><b class="num">91%</b><span>Higher means cheaper turns</span></div>
+    <div class="kpi"><small>Plan value</small><b class="num">${(all.cost*mult/ (O.range==="30d"?340:O.range==="7d"?79:11)).toFixed(1)}×</b><span>Usage value per dollar of your plans</span></div>
+  </div>
+  <div class="sec"><h3>Where the tokens went</h3>
+    <div class="crumbs">${crumbHtml}</div>
+    <div class="panel drill">${rows}</div>${detail}</div>
+  <div class="two sec">
+    <div class="panel" style="padding:14px 16px;display:grid;gap:10px"><b>Token types</b><div class="split">${types.map(x=>`<i style="width:${x[1]*100}%;background:${x[2]}" title="${x[0]}"></i>`).join("")}</div>
+      <div class="legend">${types.map(x=>`<span><i style="background:${x[2]}"></i>${x[0]} ${Math.round(x[1]*1000)/10}%</span>`).join("")}</div>
+      <p class="hint" style="margin:0">Counts are de-duplicated. Some tools count cached context twice and show 2–3× too many tokens.</p></div>
+    <div class="panel" style="padding:14px 16px;display:grid;gap:10px"><b>Models</b><div class="split"><i style="width:68%;background:var(--p2)"></i><i style="width:27%;background:var(--p1)"></i><i style="width:5%;background:var(--p5)"></i></div>
+      <div class="legend"><span><i style="background:var(--p2)"></i>Opus 5.5 · 68%</span><span><i style="background:var(--p1)"></i>Sonnet 5.5 · 27%</span><span><i style="background:var(--p5)"></i>Haiku 4.5 · 5%</span></div>
+      <p class="hint" style="margin:0">Moving the 3 lightest sessions to Sonnet would have used about 40% fewer tokens on them.</p></div>
+  </div>
+  <div class="sec"><h3>When you work</h3><div class="panel" style="padding:14px;overflow-x:auto"><div class="heat">${heat}</div></div></div>
+  <div class="two sec">
+    <div><h3 style="margin:0 0 10px;font-size:13px">Weekly forecast</h3><div class="panel rows">${fc}</div></div>
+    <div><h3 style="margin:0 0 10px;font-size:13px">Client budgets</h3><div class="panel rows">${O.budgets.map(b=>{const p=P(b.p),pct=Math.round(b.used/b.limit*100);return `<div class="rowi" style="grid-template-columns:minmax(0,1fr) auto;--pc:var(--${p?p.pc:"p1"})"><div style="display:grid;gap:6px"><span><b class="mono">${esc(b.proj)}</b></span><div class="bar"><i class="${pct>=S.settings.threshold?"hot":""}" style="width:${pct}%"></i></div><span class="hint num">$${b.used.toFixed(2)} of $${b.limit} · ${pct}%</span></div><button class="btn sm" data-act="invoice" data-proj="${esc(b.proj)}">Export</button></div>`}).join("")}</div></div>
+  </div>
+  <div class="sec"><h3>Alerts</h3><div class="panel">
+   <div class="set"><div><b>Warn me at <span class="num" id="thv">${S.settings.threshold}</span>% of a limit or budget</b><span>Bars turn red past this point</span></div><input type="range" min="50" max="95" step="5" value="${S.settings.threshold}" id="th" aria-label="Warning threshold" style="accent-color:var(--accent)"></div>
+   <div class="set"><div><b>Weekly report</b><span>A Monday summary of tokens, cost and trends per account</span></div><button class="tog" role="switch" aria-checked="${S.settings.suggest}" data-set="suggest" aria-label="Weekly report"></button></div>
+  </div>
+  <p class="hint" style="margin-top:8px">Sources: each profile’s local Claude Code session logs, plus an optional built-in OpenTelemetry receiver that Claude Code can report to. Nothing leaves your computer.</p></div>`;
+};
+
+V.bridge=()=>{
+  const L=id=>S.live.find(l=>l.id===id), br=S.br;
+  const opt=sel=>S.live.map(l=>{const p=P(l.p);return `<option value="${l.id}" ${sel===l.id?"selected":""}>${esc(p?p.name:"?")} · ${esc(l.project)}</option>`}).join("");
+  const walled=id=>{const l=L(id);return l&&S.walls[l.p]};
+  const tag=l=>{const p=P(l.p);return p?`<span class="pill" style="gap:7px">${badge(p,1)}${esc(p.name)} <span class="mono muted">${esc(l.project)}</span></span>`:""};
+  return `<div class="vh"><div><h2>${t("bridge")}</h2><p>Every running Claude session, across all your accounts, in one place. Let them ask each other questions, share snippets, or hand a task over, with you approving what crosses.</p></div></div>
+  <div class="panel">${S.live.map(l=>{const p=P(l.p);if(!p)return "";return `<div class="live" style="--pc:var(--${p.pc})">${badge(p,1)}
+     <div style="min-width:0"><b>${esc(l.task)}</b><div class="hint"><span class="mono">${esc(l.project)}</span> · ${esc(p.name)} · ${l.tok} tokens</div></div>
+     <span class="st ${l.state}"><i></i>${l.state==="working"?"Working":l.state==="waiting"?"Needs you":"Idle"}</span>
+     <div class="inrow" style="gap:6px;justify-content:flex-end">${S.walls[l.p]?'<span class="pill">Walled off</span>':`<button class="btn sm" data-msgfrom="${l.id}">Message</button>`}<button class="btn sm ${l.state==="waiting"?"pri":""}" data-act="jump" data-l="${l.id}">${l.state==="waiting"?"Answer":"Open"}</button></div></div>`}).join("")}</div>
+
+  <div class="two sec" style="align-items:start">
+   <div class="panel" style="padding:16px;display:grid;gap:12px">
+    <b>New message</b>
+    <div class="inrow"><div class="field" style="flex:1 1 180px"><label for="brFrom">From</label><select class="inp" id="brFrom">${opt(br.from)}</select></div>
+      <div class="field" style="flex:1 1 180px"><label for="brTo">To</label><select class="inp" id="brTo">${opt(br.to)}</select></div></div>
+    <div class="seg" role="group" aria-label="Kind">${["Question","Snippet","Hand off"].map(k=>`<button data-kind="${k}" aria-pressed="${br.kind===k}">${k}</button>`).join("")}</div>
+    <textarea class="inp" id="brText" placeholder="${br.kind==="Hand off"?"What should the other session take over?":br.kind==="Snippet"?"Paste or describe what to share":"Ask the other session something"}">${br.kind==="Hand off"?"Take over the contact form: finish validation and add the tests.":br.kind==="Question"?"How did you set up retries for the payment API?":""}</textarea>
+    ${br.kind==="Hand off"?`<div class="field"><label>Handoff packet</label><div class="packet">${[["summary","Conversation summary"],["files","Changed files"],["diff","Git diff"],["todos","Open to-dos"],["error","Last error"]].map(([k,l])=>`<button class="pill" data-pk="${k}" aria-pressed="${br.packet[k]}" style="${br.packet[k]?"background:var(--ink);color:var(--win);border-color:transparent":""}">${br.packet[k]?"✓ ":""}${l}</button>`).join("")}</div>
+      <span class="hint">The packet is shown to you before it is sent. Secrets are stripped from diffs and errors.</span></div>`:""}
+    ${walled(br.from)||walled(br.to)?`<div class="result" style="border-color:var(--bad);background:var(--bad-soft);color:var(--bad)">Client Lab is walled off. Nothing can be sent to or from it until you lift the wall below.</div>`:""}
+    <div style="display:flex;justify-content:flex-end;gap:8px"><button class="btn pri" data-act="send" ${br.from===br.to?"disabled":""}>Send to ${esc((P((L(br.to)||{}).p)||{}).name||"…")}</button></div>
+   </div>
+   <div style="display:grid;gap:10px"><b style="font-size:13px">Recent</b><div class="thread" id="thread">${S.relays.map(r=>{const a=L(r.from),b=L(r.to);return `<div class="msg ${r.blocked?"blocked":""}"><div class="meta">${a?tag(a):""}<span>→</span>${b?tag(b):""}<span class="pill">${esc(r.kind)}</span><span>${esc(r.t)}</span></div><div>${esc(r.text)}</div>${r.reply?`<div class="reply">${esc(r.reply)}</div>`:""}</div>`}).join("")}</div></div>
+  </div>
+
+  <div class="sec"><h3>Walls</h3><div class="panel">${S.profiles.map(p=>`<div class="set"><div style="display:flex;gap:10px;align-items:center">${badge(p,1)}<div><b>${esc(p.name)}</b><span>${S.walls[p.id]?"Isolated. Its sessions can’t send or receive anything.":"Can talk to your other accounts when you approve it"}</span></div></div><button class="tog" role="switch" aria-checked="${!!S.walls[p.id]}" data-wall="${p.id}" aria-label="Wall off ${esc(p.name)}"></button></div>`).join("")}</div>
+  <p class="hint">How it works: Claude Code already lets sessions in one account message each other. Switchyard adds a small local MCP server to every profile, so sessions in different accounts can reach each other through it. Nothing goes over the internet, and walls are enforced by the bridge itself.</p></div>`;
+};
+
+V.router=()=>{
+  const n=S.profiles.length,ys=S.profiles.map((p,i)=>n===1?130:28+i*(204/(n-1)));
+  const paths=S.profiles.map((p,i)=>`M70 130 L250 130 C330 130 350 ${ys[i]} 430 ${ys[i]} L580 ${ys[i]}`);
+  return `<div class="vh"><div><h2>${t("router")}</h2><p>Switchyard owns <code class="cmd">claude://</code> links. Sign-in links and dock actions reach the account that asked for them, instead of whichever Claude opened first.</p></div></div>
+  <div class="yard"><svg viewBox="0 0 720 260" id="yardSvg" role="img" aria-label="Switch diagram routing a link to one of the profiles">
+    ${paths.map(d=>`<path class="trk tie" d="${d}"/>`).join("")}
+    ${paths.map((d,i)=>`<path class="trk" id="trk-${S.profiles[i].id}" d="${d}" style="--pc:var(--${S.profiles[i].pc})"/>`).join("")}
+    <circle cx="56" cy="130" r="16" fill="var(--ink)"/><text x="56" y="134" text-anchor="middle" style="fill:var(--win);font-size:11px;font-weight:600">link</text>
+    <circle cx="250" cy="130" r="9" class="lever"/><text x="250" y="160" text-anchor="middle" class="sub">rules</text>
+    ${S.profiles.map((p,i)=>`<g><circle cx="596" cy="${ys[i]}" r="11" fill="var(--${p.pc})"/><text x="616" y="${ys[i]+1}" class="lbl">${esc(p.name)}</text><text x="616" y="${ys[i]+15}" class="sub">${p.running?"running":"starts on demand"}</text></g>`).join("")}
+    <circle r="7" class="train" id="train" cx="56" cy="130" opacity="0"/>
+  </svg></div>
+  <div class="sec"><h3>Try a link</h3>
+   <div class="inrow"><input class="inp mono" id="linkIn" value="claude://claude.ai/new?surface=chat" aria-label="claude link"><button class="btn pri" data-act="route">Route it</button></div>
+   <div class="inrow" style="gap:6px">${["claude://claude.ai/login/callback?code=…","claude://code/new?source=desktop_action","claude://claude.ai/project/marketing"].map(u=>`<button class="btn sm ghost mono" data-ex="${esc(u)}">${esc(u)}</button>`).join("")}</div>
+  </div>
+  <div class="sec"><h3>Rules, checked top to bottom</h3><div class="tbl-wrap"><table><thead><tr><th>When</th><th>Send to</th></tr></thead><tbody>
+   ${S.routes.map(r=>`<tr><td>${esc(r.when)}</td><td>${r.to==="ask"?'<span class="pill warn">Ask me</span>':r.to==="pending"?'<span class="pill">The waiting profile</span>':r.to==="remember"?'<span class="pill">Last choice for that link</span>':routeTo(r.to)}</td></tr>`).join("")}
+  </tbody></table></div></div>
+  <div class="sec"><h3>Recent</h3><div class="panel rows">${S.recent.map(r=>`<div class="rowi" style="grid-template-columns:minmax(0,1fr) auto">
+   <div style="min-width:0"><div class="mono" style="overflow-wrap:anywhere">${esc(r.url)}</div><div class="hint">${esc(r.why)} · ${esc(r.t)}</div></div>${routeTo(r.to)}</div>`).join("")}</div></div>`;
+};
+function routeTo(id){const p=P(id);return p?`<span class="pill" style="gap:7px">${badge(p,1)}${esc(p.name)}</span>`:'<span class="pill">Removed profile</span>'}
+
+V.folders=()=>`<div class="vh"><div><h2>${t("folders")}</h2><p>Type <code class="cmd">claude</code> anywhere. Switchyard picks the account from the folder you are in, the way Git picks an identity per repository.</p></div><button class="btn" data-act="addrule">${ic("plus",14)} Add rule</button></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Folder pattern</th><th>Account</th><th class="c">Order</th></tr></thead><tbody>
+  ${S.folders.map((r,i)=>`<tr><td><code class="cmd">${esc(r.glob)}</code>${r.glob==="**"?' <span class="hint">everything else</span>':""}</td><td>${routeTo(r.to)}</td><td class="c num muted">${i+1}</td></tr>`).join("")}
+  </tbody></table></div>
+  <div class="sec"><h3>Test a folder</h3>
+   <input class="inp mono" id="pathIn" value="~/work/shop-api/src" aria-label="Folder path">
+   <div class="result" id="pathOut"></div></div>
+  <div class="sec"><h3>How it works</h3><p class="hint" style="max-width:70ch">Switchyard installs a small <code class="cmd">claude</code> shim ahead of the real one on your PATH. It matches the current folder against these rules, sets the matching profile’s config folder, and hands over to Claude Code. <code class="cmd">claude-work</code> style shortcuts still work when you want to choose by hand.</p></div>`;
+function matchFolder(path){
+  const home=S.os==="windows"?"%USERPROFILE%":"~";
+  const norm=path.trim().replace(/\\/g,"/").replace(/^%USERPROFILE%/i,"~").replace(/\/+$/,"");
+  for(const r of S.folders){
+    const rx=new RegExp("^"+r.glob.replace(/[.+^${}()|[\]]/g,"\\$&").replace(/\*\*/g,"\u0000").replace(/\*/g,"[^/]*").replace(/\u0000/g,".*").replace(/\/\.\*$/,"(/.*)?")+"$");
+    if(rx.test(norm)) return {r,home};
+  }
+  return null;
+}
+function updatePath(){
+  const out=$("#pathOut"); if(!out) return;
+  const m=matchFolder($("#pathIn").value); const p=m&&P(m.r.to);
+  out.innerHTML=p?`Runs as ${routeTo(p.id)} <span class="muted">matched</span> <code class="cmd">${esc(m.r.glob)}</code><span style="flex-basis:100%"></span><code class="cmd">${S.os==="windows"?`set CLAUDE_CONFIG_DIR=${OS.windows.cli(p)} &amp;&amp; claude`:`CLAUDE_CONFIG_DIR=${esc(OS[S.os].cli(p))} claude`}</code>`:"No rule matches. Add a catch-all rule (**).";
+}
+
+const CTL0=()=>({model:"Opus 5.5",effort:"high",fast:false,mode:"default",
+  allow:["Bash(npm test:*)","Bash(git status)","Read(src/**)"],deny:["Read(.env*)","Bash(rm -rf:*)","Bash(git push --force:*)"],
+  hooks:[{ev:"PostToolUse",what:"Run prettier on edited files",on:true},{ev:"PreToolUse",what:"Block edits outside the project folder",on:true},{ev:"Stop",what:"Desktop notification when Claude finishes",on:true},{ev:"SessionStart",what:"Load today’s tasks from TODO.md",on:false}],
+  plugins:[{n:"code-review",d:"Reviews your diff for bugs",on:true},{n:"frontend-design",d:"Design guidance for UI work",on:true},{n:"vercel",d:"Deploy and inspect Vercel projects",on:false},{n:"huggingface",d:"Models, datasets and Spaces",on:false}],
+  env:[{k:"ANTHROPIC_LOG",v:"info",secret:false},{k:"GITHUB_TOKEN",v:"ghp_••••••••3f9a",secret:true}],
+  style:"Default",dirty:false});
+V.control=()=>{
+  if(!S.ctl)S.ctl={};
+  const pid=S.ctlP&&P(S.ctlP)?S.ctlP:S.profiles[0].id; S.ctlP=pid;
+  const c=S.ctl[pid]||(S.ctl[pid]=CTL0()), p=P(pid), o=OS[S.os];
+  const modes=[["default","Ask before risky actions"],["acceptEdits","Auto-accept file edits"],["plan","Plan only, no changes"],["auto","Auto mode, a classifier decides"],["bypassPermissions","Bypass all prompts"]];
+  const chip=(r,list)=>`<span class="pill mono" style="gap:6px">${esc(r)}<button class="btn ghost sm" style="padding:0 4px" data-rmrule="${list}" data-r="${esc(r)}" aria-label="Remove ${esc(r)}">✕</button></span>`;
+  const json={model:c.model.toLowerCase().replace(/ /g,"-"),effortLevel:c.effort,permissions:{defaultMode:c.mode,allow:c.allow,deny:c.deny},hooks:Object.fromEntries(c.hooks.filter(h=>h.on).map(h=>[h.ev,[{description:h.what}]])),enabledPlugins:Object.fromEntries(c.plugins.map(x=>[x.n,x.on])),outputStyle:c.style,env:Object.fromEntries(c.env.map(e=>[e.k,e.secret?"<from keychain>":e.v]))};
+  return `<div class="vh"><div><h2>${t("control")}</h2><p>Everything Claude can be told, per account: model, thinking effort, permissions, hooks, plugins and environment. Nothing is applied until you review the change.</p></div>
+    <div class="inrow"><button class="btn" data-act="copyto">Copy to other accounts…</button><button class="btn pri" data-act="apply" ${c.dirty?"":"disabled"}>${c.dirty?"Review and apply":"No changes"}</button></div></div>
+  <div class="inrow" style="gap:6px;margin-bottom:14px">${S.profiles.map(x=>`<button class="pill" data-ctlp="${x.id}" style="gap:7px;${x.id===pid?`background:var(--${x.pc});color:#fff;border-color:transparent`:""}">${esc(x.name)}${S.ctl[x.id]&&S.ctl[x.id].dirty?" •":""}</button>`).join("")}</div>
+  <div class="result" style="margin-bottom:16px"><b>Start from a preset</b>${[["strict","Strict client work"],["power","Power user"],["learn","Learning mode"]].map(([k,l])=>`<button class="btn sm" data-tpl="${k}">${l}</button>`).join("")}<span class="hint">Presets change the settings below. You still review before applying.</span></div>
+
+  <div class="two" style="align-items:start">
+   <div class="panel">
+    <div class="set"><div><b>Default model</b><span>Used when a session starts</span></div><select id="ctlModel" aria-label="Default model">${["Fable 5.1","Opus 5.5","Sonnet 5.5","Haiku 4.5"].map(m=>`<option ${m===c.model?"selected":""}>${m}</option>`).join("")}</select></div>
+    <div class="set"><div><b>Thinking effort</b><span>Higher thinks longer and uses more tokens</span></div><div class="seg">${["low","medium","high","max"].map(e=>`<button data-eff="${e}" aria-pressed="${c.effort===e}">${e}</button>`).join("")}</div></div>
+    <div class="set"><div><b>Fast mode</b><span>Faster replies from the same model</span></div><button class="tog" role="switch" aria-checked="${c.fast}" data-ctlflag="fast" aria-label="Fast mode"></button></div>
+    <div class="set"><div><b>Output style</b><span>How Claude explains its work</span></div><select id="ctlStyle" aria-label="Output style">${["Default","Explanatory","Learning","Concise"].map(m=>`<option ${m===c.style?"selected":""}>${m}</option>`).join("")}</select></div>
+   </div>
+   <div class="panel" style="padding:14px 16px;display:grid;gap:10px">
+    <b>Permissions</b>
+    <select class="inp" id="ctlMode" aria-label="Permission mode">${modes.map(([v,l])=>`<option value="${v}" ${v===c.mode?"selected":""}>${l}</option>`).join("")}</select>
+    ${c.mode==="bypassPermissions"?`<div class="result" style="border-color:var(--bad);background:var(--bad-soft);color:var(--bad)">Claude will run any command without asking. Use only in a throwaway container.</div>`:""}
+    <span class="hint">Always allowed</span><div class="packet">${c.allow.map(r=>chip(r,"allow")).join("")}</div>
+    <span class="hint">Never allowed</span><div class="packet">${c.deny.map(r=>chip(r,"deny")).join("")}</div>
+    <div class="inrow"><input class="inp mono" id="ruleIn" placeholder="e.g. Bash(docker compose up:*)" aria-label="New rule"><button class="btn sm" data-act="addallow">Allow</button><button class="btn sm danger" data-act="adddeny">Deny</button></div>
+   </div>
+  </div>
+
+  <div class="two sec" style="align-items:start">
+   <div><h3 style="margin:0 0 10px;font-size:13px">Hooks</h3><div class="panel">${c.hooks.map((h,i)=>`<div class="set"><div><b>${esc(h.what)}</b><span class="mono">${h.ev}</span></div><button class="tog" role="switch" aria-checked="${h.on}" data-hook="${i}" aria-label="${esc(h.what)}"></button></div>`).join("")}</div></div>
+   <div><h3 style="margin:0 0 10px;font-size:13px">Plugins</h3><div class="panel">${c.plugins.map((x,i)=>`<div class="set"><div><b class="mono">${esc(x.n)}</b><span>${esc(x.d)}</span></div><button class="tog" role="switch" aria-checked="${x.on}" data-plug="${i}" aria-label="${esc(x.n)}"></button></div>`).join("")}</div></div>
+  </div>
+
+  <div class="sec"><h3>Environment</h3><div class="panel">${c.env.map(e=>`<div class="set"><div><b class="mono">${esc(e.k)}</b><span class="mono">${esc(e.v)}</span></div>${e.secret?'<span class="pill ok">Stored in system keychain</span>':'<span class="pill">Plain</span>'}</div>`).join("")}</div></div>
+
+  <div class="sec"><h3>What will be written</h3><div class="tbl-wrap" style="padding:12px 14px"><pre class="mono" style="margin:0;white-space:pre;font-size:11.5px;line-height:1.6">${esc(o.cli(p))}/settings.json\n\n${esc(JSON.stringify(json,null,2))}</pre></div>
+   <p class="hint">A backup of the current file is saved first. The desktop app’s own preferences stay under its Settings window; Switchyard only edits files Claude documents as user-editable.</p></div>`;
+};
+
+V.mcp=()=>`<div class="vh"><div><h2>${t("mcp")}</h2><p>Choose which tools each account can use. Switchyard edits each profile’s config for you and keeps a backup of every change.</p></div><button class="btn" data-act="addmcp">${ic("plus",14)} Add server</button></div>
+  <div class="tbl-wrap"><table><thead><tr><th>Server</th><th>Status</th>${S.profiles.map(p=>`<th class="c">${esc(p.name)}</th>`).join("")}</tr></thead><tbody>
+  ${S.mcp.map((m,mi)=>`<tr><td><b class="mono">${esc(m.name)}</b><div class="hint">${m.kind}</div></td>
+    <td>${m.status==="ok"?'<span class="pill ok"><span class="dot"></span>Healthy</span>':m.status==="warn"?'<span class="pill warn"><span class="dot"></span>Token expires in 3 days</span>':'<span class="pill bad"><span class="dot"></span>Fails to start</span>'}</td>
+    ${S.profiles.map(p=>`<td class="c"><button class="cell" style="--pc:var(--${p.pc})" aria-pressed="${!!m.on[p.id]}" data-mcp="${mi}" data-p="${p.id}" aria-label="${esc(m.name)} for ${esc(p.name)}">${m.on[p.id]?"✓":""}</button></td>`).join("")}</tr>`).join("")}
+  </tbody></table></div>
+  <p class="hint" style="margin-top:10px">Changes apply the next time that account starts. Running accounts get a “Restart to apply” prompt. Claude can rewrite its config while open, so Switchyard never edits a file under a running instance.</p>
+  ${S.mcp.some(m=>m.status==="bad")?`<div class="result" style="margin-top:14px;border-color:var(--bad);background:var(--bad-soft)"><b style="color:var(--bad)">postgres-prod fails to start</b><span>Exit code 1: <span class="mono">connection refused 127.0.0.1:5432</span>. Is the database running?</span><button class="btn sm" data-act="mcpfix">Disable in Work</button></div>`:""}`;
+
+V.kit=()=>`<div class="vh"><div><h2>${t("kit")}</h2><p>Write a skill once and use it everywhere. Shared items live in one folder, and each account links to the parts you choose.</p></div></div>
+  <div class="panel rows">${S.kit.map((k,ki)=>`<div class="rowi" style="grid-template-columns:minmax(0,1.4fr) minmax(0,1.6fr)">
+    <div><b>${esc(k.name)}</b> <span class="muted num">· ${k.count}</span><div class="hint">${esc(k.desc)}</div></div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end">${S.profiles.map(p=>`<button class="pill" data-kit="${ki}" data-p="${p.id}" aria-pressed="${k.on.includes(p.id)}" style="${k.on.includes(p.id)?`background:var(--${p.pc});color:#fff;border-color:transparent`:""}">${esc(p.name)}</button>`).join("")}</div></div>`).join("")}</div>
+  <div class="sec"><h3>Sync between computers</h3><div class="panel">
+    <div class="set"><div><b>Kit repository</b><span class="mono">git@github.com:you/claude-kit.git · pushed 2 h ago</span></div><button class="btn sm" data-act="sync">Sync now</button></div>
+    <div class="set"><div><b>Encrypt secrets before upload</b><span>Hook and MCP secrets are encrypted with a key that stays on this device</span></div><button class="tog" role="switch" aria-checked="true" data-flip aria-label="Encrypt secrets"></button></div>
+    <div class="set"><div><b>Never sync sign-ins</b><span>Accounts always sign in fresh on each computer</span></div><span class="pill ok">Always on</span></div>
+  </div></div>`;
+
+V.sessions=()=>{
+  const q=S.sessQ.toLowerCase();
+  const list=S.sessions.filter(s=>(S.sessP==="all"||s.p===S.sessP)&&(!q||(s.title+" "+s.project).toLowerCase().includes(q)));
+  return `<div class="vh"><div><h2>${t("sessions")}</h2><p>One search across the Claude Code history of every account. Resume any session in the account it belongs to.</p></div></div>
+  <div class="inrow"><input class="inp" id="sessQ" placeholder="Search titles and folders" value="${esc(S.sessQ)}" aria-label="Search sessions"></div>
+  <div class="inrow" style="gap:6px;margin:10px 0 14px"><button class="pill" data-sp="all" style="${S.sessP==="all"?"background:var(--ink);color:var(--win)":""}">All accounts</button>${S.profiles.map(p=>`<button class="pill" data-sp="${p.id}" style="${S.sessP===p.id?`background:var(--${p.pc});color:#fff;border-color:transparent`:""}">${esc(p.name)}</button>`).join("")}</div>
+  <div class="panel rows">${list.length?list.map(s=>{const p=P(s.p);return `<div class="rowi" style="grid-template-columns:auto minmax(0,1fr) auto">${p?badge(p,1):""}
+    <div style="min-width:0"><b>${esc(s.title)}</b><div class="hint"><span class="mono">${esc(s.project)}</span> · ${esc(s.t)} · ${s.msgs} messages</div></div>
+    <button class="btn sm" data-resume="${s.id}">Resume</button></div>`}).join(""):`<div class="rowi"><span class="muted">No sessions match “${esc(S.sessQ)}”.</span></div>`}</div>`;
+};
+
+V.backups=()=>`<div class="vh"><div><h2>${t("backups")}</h2><p>Snapshots of chats settings, MCP config and Claude Code history for every account. Sign-in tokens are left out on purpose.</p></div>
+  <div class="inrow"><button class="btn" data-act="move">Move to another computer</button><button class="btn pri" data-act="backup">Back up now</button></div></div>
+  <div class="panel rows" id="bkList">${S.backups.map(b=>`<div class="rowi" style="grid-template-columns:minmax(0,1fr) auto auto auto">
+    <div><b>${esc(b.when)}</b><div class="hint">${esc(b.scope)}</div></div><span class="num muted">${esc(b.size)}</span>${b.enc?'<span class="pill ok">Encrypted</span>':'<span class="pill">Plain</span>'}<button class="btn sm" data-act="restore">Restore…</button></div>`).join("")}</div>
+  <div class="sec"><h3>Schedule</h3><div class="panel">
+   <div class="set"><div><b>Automatic backups</b><span>Kept for 14 days, then thinned to one per week</span></div><select id="sched" aria-label="Backup schedule"><option>Daily at 09:00</option><option>Every 6 hours</option><option>Weekly</option><option>Off</option></select></div>
+   <div class="set"><div><b>Where</b><span class="mono">${S.os==="windows"?"%USERPROFILE%\\Switchyard\\backups":S.os==="macos"?"~/Library/Application Support/Switchyard/backups":"~/.local/share/switchyard/backups"}</span></div><button class="btn sm" data-act="where">Change…</button></div>
+  </div></div>`;
+
+const CHECKS=()=>[
+ {s:"ok",title:"Claude Desktop is up to date",body:S.os==="linux"?"3.6556.2 from Anthropic’s apt repository. Updates arrive with your system updates.":"Latest version, auto-update is on."},
+ {s:"ok",title:"Every profile has its own identity",body:OS[S.os].dock},
+ {s:"bad",title:"An MCP server fails to start",body:"postgres-prod in Work exits with “connection refused”.",fix:"Open"},
+ {s:"warn",title:"Caches take 1.4 GB",body:"GPU and code caches across 4 profiles. Safe to clear, chats are untouched.",fix:"Clear"},
+ {s:"ok",title:"claude:// links go through Switchyard",body:OS[S.os].link},
+ {s:"ok",title:"No stale profile locks",body:"Every profile folder can start."}
+];
+V.doctor=()=>`<div class="vh"><div><h2>${t("doctor")}</h2><p>Checks the things that quietly break multi-account setups, and fixes most of them in one click.</p></div><button class="btn pri" data-act="rundoc">Run checks</button></div>
+  <div class="panel" id="docList">${CHECKS().map((c,i)=>`<div class="chk" data-ci="${i}"><span class="ic ${S.doctorRan?c.s:""}">${S.doctorRan?(c.s==="ok"?"✓":"!"):""}</span><div><b>${esc(c.title)}</b><p>${S.doctorRan?esc(c.body):"Not checked yet"}</p></div>${S.doctorRan&&c.fix?`<button class="btn sm" data-act="docfix" data-ci="${i}">${c.fix}</button>`:"<span></span>"}</div>`).join("")}</div>`;
+
+V.settings=()=>{const st=S.settings;const row=(k,b,s)=>`<div class="set"><div><b>${b}</b><span>${s}</span></div><button class="tog" role="switch" aria-checked="${st[k]}" data-set="${k}" aria-label="${b}"></button></div>`;
+ return `<div class="vh"><div><h2>${t("settings")}</h2><p>Switchyard runs quietly in the tray and stays out of your way.</p></div></div>
+  <div class="panel">
+   ${row("tray","Show in tray / menu bar","Launch any account from the tray icon")}
+   ${row("login","Start at login","Keeps the link router ready")}
+   ${row("hotkey","Quick switcher hotkey",`<span class="kbd">${OS[S.os].mod}</span> <span class="kbd">Alt</span> <span class="kbd">Space</span> opens the switcher from anywhere`)}
+   ${row("notify","Notifications","Limit warnings, failed servers, new Claude versions")}
+   <div class="set"><div><b>Language</b><span>English, العربية (right-to-left)</span></div><select id="lang" aria-label="Language"><option value="en" ${S.lang==="en"?"selected":""}>English</option><option value="ar" ${S.lang==="ar"?"selected":""}>العربية</option></select></div>
+   <div class="set"><div><b>Theme</b><span>Follows the system by default</span></div><select id="theme" aria-label="Theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></div>
+   <div class="set"><div><b>Privacy</b><span>No telemetry. Switchyard never reads, copies or uploads passwords or sign-in tokens.</span></div><span class="pill ok">Local only</span></div>
+  </div>`;
+};
+
+/* ---------------- render ---------------- */
+function render(){
+  $("#app").setAttribute("dir",S.lang==="ar"?"rtl":"ltr");
+  renderChrome(); renderSide();
+  const m=$("#main"); m.innerHTML=V[S.view](); m.scrollTop=0;
+  if(S.view==="folders"){updatePath();$("#pathIn").addEventListener("input",updatePath)}
+  if(S.view==="sessions"){const q=$("#sessQ");q.addEventListener("input",()=>{S.sessQ=q.value;const pos=q.selectionStart;render();const n=$("#sessQ");n.focus();n.setSelectionRange(pos,pos)})}
+  if(S.view==="usage"){const r=$("#th");r.addEventListener("input",()=>{S.settings.threshold=+r.value;$("#thv").textContent=r.value;$$(".bar i").forEach(b=>{const w=parseFloat(b.style.width);b.classList.toggle("hot",w>=S.settings.threshold)})})}
+  if(S.view==="control"){const c=S.ctl[S.ctlP];[["ctlModel","model"],["ctlStyle","style"],["ctlMode","mode"]].forEach(([id,k])=>$("#"+id).addEventListener("change",e=>{c[k]=e.target.value;c.dirty=true;render()}))}
+  if(S.view==="bridge"){[["brFrom","from"],["brTo","to"]].forEach(([id,k])=>$("#"+id).addEventListener("change",e=>{S.br[k]=e.target.value;render()}))}
+  if(S.view==="settings"){$("#lang").addEventListener("change",e=>{S.lang=e.target.value;render()});const th=$("#theme");th.value=S.settings.theme;th.addEventListener("change",e=>{S.settings.theme=e.target.value;if(e.target.value==="system")document.documentElement.removeAttribute("data-theme");else document.documentElement.setAttribute("data-theme",e.target.value)})}
+}
+function go(v){S.view=v;store.set("view",v);S.confirmRemove=null;closeMenu();render()}
+
+/* live countdowns */
+setInterval(()=>{$$("[data-live]").forEach(el=>{const v=+el.dataset.live;if(!v)return;const txt=fmtLeft(v-Date.now());el.textContent=el.closest(".strip")?"in "+txt:(el.closest(".pcard")?"resets in "+txt:txt)})},1000);
+
+/* ---------------- menus ---------------- */
+let menuEl=null;
+function closeMenu(){if(menuEl){menuEl.remove();menuEl=null}}
+function openMenu(btn,id){
+  closeMenu();const p=P(id);const w=$("#win").getBoundingClientRect(),b=btn.getBoundingClientRect();
+  menuEl=document.createElement("div");menuEl.className="menu";
+  menuEl.innerHTML=`<button data-mact="folder">Open data folder</button><button data-mact="rename">Rename…</button><button data-mact="dup">Duplicate settings</button><button data-mact="export">Export profile…</button><button data-mact="rm" style="color:var(--bad)">Remove…</button>`;
+  $("#win").appendChild(menuEl);
+  const mw=200, left=Math.min(Math.max(8,b.right-w.left-mw),w.width-mw-8);
+  menuEl.style.left=left+"px";menuEl.style.top=(b.bottom-w.top+6)+"px";
+  menuEl.addEventListener("click",e=>{const a=e.target.dataset.mact;if(!a)return;closeMenu();
+    if(a==="folder")toast(`Opened <code>${esc(OS[S.os].dir(p))}</code>`);
+    if(a==="rename"){openNew(p)}
+    if(a==="dup")toast(`New profile will copy MCP servers and kit links from ${esc(p.name)}. Sign-in is never copied.`);
+    if(a==="export")toast(`Exported ${esc(p.name)} settings to <code>${esc(slug(p))}.syd</code> (no sign-in data)`);
+    if(a==="rm"){S.confirmRemove=id;render()}
+  });
+}
+
+/* ---------------- route animation ---------------- */
+function animateTo(id,done){
+  const path=$("#trk-"+id),train=$("#train");if(!path||!train){done&&done();return}
+  $$(".trk").forEach(t=>t.classList.remove("lit"));
+  const len=path.getTotalLength();train.setAttribute("opacity","1");
+  const finish=()=>{path.classList.add("lit");const e=path.getPointAtLength(len);train.setAttribute("cx",e.x);train.setAttribute("cy",e.y);done&&done()};
+  if(reduce){finish();return}
+  const t0=performance.now(),dur=900;
+  (function step(ts){const k=Math.min(1,(ts-t0)/dur),e=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2,pt=path.getPointAtLength(e*len);
+    train.setAttribute("cx",pt.x);train.setAttribute("cy",pt.y);if(k<1)requestAnimationFrame(step);else finish()})(t0);
+}
+function decide(url){
+  if(/login\/callback/.test(url)) return {to:"work",why:"Work was waiting for sign-in"};
+  if(/code\/new/.test(url)) return {to:"freelance",why:"Dock action came from Freelance"};
+  return {to:"ask"};
+}
+function routeLink(){
+  const url=$("#linkIn").value.trim()||"claude://claude.ai/new";const d=decide(url);
+  const land=(id,why)=>animateTo(id,()=>{const p=P(id);if(!p)return;S.recent.unshift({url,to:id,t:"Just now",why});S.recent=S.recent.slice(0,4);p.running=true;toast(`Opened in <b>${esc(p.name)}</b>${why?` · ${esc(why)}`:""}`);
+    setTimeout(()=>{if(S.view==="router"){render();const pp=$("#trk-"+id);pp&&pp.classList.add("lit")}},700)});
+  if(d.to!=="ask"&&P(d.to)){land(d.to,d.why);return}
+  const ask=document.createElement("div");ask.className="ask";
+  ask.innerHTML=`<div class="askbox" role="dialog" aria-label="Choose account"><h4>Open this link in which account?</h4><div class="mono hint" style="overflow-wrap:anywhere">${esc(url)}</div>
+    <div class="opts">${S.profiles.map(p=>`<button class="opt" data-pick="${p.id}" style="--pc:var(--${p.pc})">${badge(p,1)}<span style="flex:1"><b>${esc(p.name)}</b> <span class="hint">${esc(p.email)}</span></span>${p.running?'<span class="pill ok">open</span>':""}</button>`).join("")}</div>
+    <label class="hint" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="remember" style="accent-color:var(--accent)"> Remember for links like this</label></div>`;
+  $("#win").appendChild(ask);ask.querySelector(".opt").focus();
+  ask.addEventListener("click",e=>{const b=e.target.closest("[data-pick]");if(b){const rem=$("#remember").checked;ask.remove();land(b.dataset.pick,rem?"You picked it and Switchyard will remember":"You picked it")}else if(e.target===ask)ask.remove()});
+}
+
+/* ---------------- new profile modal ---------------- */
+function openNew(edit){
+  const used=S.profiles.map(p=>p.pc), colors=["p1","p2","p3","p4","p5","p6"];
+  const st={name:edit?edit.name:"",pc:edit?edit.pc:(colors.find(c=>!used.includes(c))||"p5"),plan:edit?edit.plan:"Pro",desktop:edit?edit.desktop:true,cli:edit?edit.cli:true,kit:true};
+  const ov=document.createElement("div");ov.className="overlay";
+  const draw=()=>{const fake={id:"new",name:st.name||"New",pc:st.pc};const o=OS[S.os];
+    ov.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${edit?"Edit":"New"} profile"><header><h3>${edit?"Edit profile":"New profile"}</h3><button class="btn ghost sm" data-x aria-label="Close">✕</button></header>
+    <div class="body">
+      <div class="field"><label for="npName">Name</label><input class="inp" id="npName" placeholder="e.g. Freelance, Client, Research" value="${esc(st.name)}"></div>
+      <div class="field"><label>Color</label><div class="swatches">${colors.map(c=>`<button style="--pc:var(--${c})" aria-pressed="${st.pc===c}" data-c="${c}" aria-label="Color ${c}"></button>`).join("")}</div></div>
+      <div class="field"><label for="npPlan">Plan (for limit estimates)</label><select class="inp" id="npPlan">${["Free","Pro","Max 5x","Max 20x","Team","Enterprise"].map(x=>`<option ${x===st.plan?"selected":""}>${x}</option>`).join("")}</select></div>
+      <div class="checks">
+        <label><input type="checkbox" id="npD" ${st.desktop?"checked":""}><span><b>Desktop app</b><br><span class="hint">Separate Claude window with its own sign-in and dock icon</span></span></label>
+        <label><input type="checkbox" id="npC" ${st.cli?"checked":""}><span><b>Claude Code in the terminal</b><br><span class="hint">Adds a <code class="cmd">claude-${esc(slug(fake))}</code> command</span></span></label>
+        <label><input type="checkbox" id="npK" ${st.kit?"checked":""}><span><b>Link my Shared Kit</b><br><span class="hint">Skills, commands and status line from your kit folder</span></span></label>
+      </div>
+      <div class="preview"><div><span>Data folder</span><span class="mono">${esc(o.dir(fake))}</span></div>${st.cli?`<div><span>Claude Code folder</span><span class="mono">${esc(o.cli(fake))}</span></div>`:""}${st.desktop?`<div><span>Launcher</span><span>${esc(o.entry(fake))}</span></div>`:""}<div><span>Sign-in</span><span>You sign in once, inside the new window</span></div></div>
+    </div>
+    <footer><button class="btn" data-x>Cancel</button><button class="btn pri" data-create ${st.name.trim()?"":"disabled"}>${edit?"Save":"Create profile"}</button></footer></div>`;
+    const n=$("#npName",ov);n.focus();n.setSelectionRange(n.value.length,n.value.length);
+    n.addEventListener("input",()=>{st.name=n.value;const pos=n.selectionStart;draw();const m=$("#npName",ov);m.setSelectionRange(pos,pos)});
+    $("#npPlan",ov).addEventListener("change",e=>st.plan=e.target.value);
+    $("#npD",ov).addEventListener("change",e=>{st.desktop=e.target.checked;draw()});
+    $("#npC",ov).addEventListener("change",e=>{st.cli=e.target.checked;draw()});
+    $("#npK",ov).addEventListener("change",e=>st.kit=e.target.checked);
+  };
+  ov.addEventListener("click",e=>{
+    if(e.target===ov||e.target.closest("[data-x]")){ov.remove();return}
+    const c=e.target.closest("[data-c]");if(c){st.pc=c.dataset.c;draw();return}
+    if(e.target.closest("[data-create]")&&st.name.trim()){
+      if(edit){Object.assign(edit,{name:st.name.trim(),pc:st.pc,plan:st.plan,desktop:st.desktop,cli:st.cli});toast(`Saved ${esc(edit.name)}`)}
+      else{let id=slug({name:st.name});while(P(id))id+="-2";
+        const p={id,name:st.name.trim(),email:"Not signed in yet",plan:st.plan,pc:st.pc,running:false,desktop:st.desktop,cli:st.cli,session:0,weekly:0,reset:null,example:false};
+        S.profiles.push(p);S.mcp.forEach(m=>m.on[id]=m.name==="filesystem"||m.name==="context7");if(st.kit)S.kit.forEach(k=>k.on.push(id));
+        toast(`Created <b>${esc(p.name)}</b>. Launch it to sign in.`)}
+      ov.remove();render();
+    }
+  });
+  ov.addEventListener("keydown",e=>{if(e.key==="Escape")ov.remove();if(e.key==="Enter"&&e.target.id==="npName"&&st.name.trim())$("[data-create]",ov).click()});
+  $("#win").appendChild(ov);draw();
+}
+
+/* ---------------- command palette ---------------- */
+function openPal(){
+  if($(".pal"))return;
+  const acts=[
+    ...S.profiles.map(p=>({l:`${p.running?"Show":"Launch"} ${p.name}`,k:p.plan,p,run:()=>{p.running=true;toast(`${esc(p.name)} is in front`);render()}})),
+    ...S.profiles.filter(p=>p.cli).map(p=>({l:`Terminal as ${p.name}`,k:`claude-${slug(p)}`,p,run:()=>termToast(p)})),
+    {l:"New profile",k:"N",run:()=>openNew()},{l:"Quit all accounts",k:"",run:()=>{S.profiles.forEach(p=>p.running=false);render();toast("All accounts quit")}},
+    ...NAV.flatMap(g=>g[1]).map(v=>({l:`Go to ${T.en[v]}`,k:"",run:()=>go(v)})),
+    {l:"Run Doctor checks",k:"",run:()=>{go("doctor");runDoctor()}},{l:"Back up now",k:"",run:()=>{go("backups");backup()}}
+  ];
+  const ov=document.createElement("div");ov.className="overlay";
+  ov.innerHTML=`<div class="pal" role="dialog" aria-label="Quick switcher"><input id="palIn" placeholder="Type an account or an action" aria-label="Quick switcher"><ul id="palList" role="listbox"></ul></div>`;
+  $("#win").appendChild(ov);
+  let sel=0,cur=acts;const inp=$("#palIn",ov),ul=$("#palList",ov);
+  const draw=()=>{const q=inp.value.toLowerCase().trim();cur=acts.filter(a=>!q||q.split(/\s+/).every(w=>a.l.toLowerCase().includes(w)));sel=Math.min(sel,Math.max(cur.length-1,0));
+    ul.innerHTML=cur.length?cur.map((a,i)=>`<li role="option" aria-selected="${i===sel}" data-i="${i}">${a.p?badge(a.p,1):`<span class="mono-badge sm" style="--pc:var(--ink3)">›</span>`}<span>${esc(a.l)}</span><span class="k mono">${esc(a.k)}</span></li>`).join(""):`<li class="muted">Nothing matches</li>`};
+  const run=i=>{const a=cur[i];if(!a)return;ov.remove();a.run()};
+  inp.addEventListener("input",()=>{sel=0;draw()});
+  inp.addEventListener("keydown",e=>{if(e.key==="ArrowDown"){sel=Math.min(sel+1,cur.length-1);draw();e.preventDefault()}else if(e.key==="ArrowUp"){sel=Math.max(sel-1,0);draw();e.preventDefault()}else if(e.key==="Enter"){run(sel)}else if(e.key==="Escape"){ov.remove()}});
+  ul.addEventListener("click",e=>{const li=e.target.closest("[data-i]");if(li)run(+li.dataset.i)});
+  ov.addEventListener("click",e=>{if(e.target===ov)ov.remove()});
+  draw();inp.focus();
+}
+function termToast(p){toast(S.os==="windows"?`Terminal opened as ${esc(p.name)}: <code>claude-${esc(slug(p))}</code>`:`Terminal opened: <code>CLAUDE_CONFIG_DIR=${esc(OS[S.os].cli(p))} claude</code>`)}
+
+/* ---------------- doctor + backups ---------------- */
+function runDoctor(){
+  const rows=$$("#docList .chk");if(!rows.length)return;const cs=CHECKS();
+  rows.forEach(r=>{const i=r.querySelector(".ic");i.className="ic run";i.textContent="";r.querySelector("p").textContent="Checking…";r.lastElementChild.outerHTML="<span></span>"});
+  rows.forEach((r,i)=>setTimeout(()=>{const c=cs[i],icn=r.querySelector(".ic");icn.className="ic "+c.s;icn.textContent=c.s==="ok"?"✓":"!";r.querySelector("p").textContent=c.body;
+    if(c.fix){const b=document.createElement("button");b.className="btn sm";b.dataset.act="docfix";b.dataset.ci=i;b.textContent=c.fix;r.lastElementChild.replaceWith(b)}
+    if(i===rows.length-1){S.doctorRan=true;renderSide()}},reduce?0:350*(i+1)));
+}
+function backup(){
+  const list=$("#bkList");if(!list)return;
+  const row=document.createElement("div");row.className="rowi";row.style.gridTemplateColumns="minmax(0,1fr) auto";
+  row.innerHTML=`<div><b>Backing up…</b><div class="bar" style="margin-top:6px;--pc:var(--accent)"><i style="width:0%"></i></div></div><span class="num muted">0%</span>`;
+  list.prepend(row);let k=0;const bar=row.querySelector(".bar i"),pct=row.querySelector(".num");
+  const tm=setInterval(()=>{k=Math.min(100,k+(reduce?100:9+Math.random()*14));bar.style.width=k+"%";pct.textContent=Math.round(k)+"%";
+    if(k>=100){clearInterval(tm);S.backups.unshift({when:"Just now",size:"414 MB",scope:"All profiles",enc:true});toast("Backup finished · 414 MB, encrypted");if(S.view==="backups")render()}},180);
+}
+
+/* ---------------- events ---------------- */
+$("#side").addEventListener("click",e=>{const n=e.target.closest("[data-nav]");if(n)go(n.dataset.nav);if(e.target.closest("#openPal"))openPal()});
+$("#main").addEventListener("click",e=>{
+  const el=e.target.closest("button");if(!el)return;
+  const id=el.dataset.id, a=el.dataset.act, p=id&&P(id);
+  if(el.dataset.menu){e.stopPropagation();openMenu(el,el.dataset.menu);return}
+  if(a==="new")openNew();
+  if(a==="launch"&&p){p.running=true;if(!p.reset)p.reset=Date.now()+300*M;toast(`Launching <b>${esc(p.name)}</b>…`);render()}
+  if(a==="focus"&&p)toast(`${esc(p.name)} window brought to front`);
+  if(a==="quit"&&p){p.running=false;toast(`${esc(p.name)} quit`);render()}
+  if(a==="quitall"){S.profiles.forEach(x=>x.running=false);toast("All accounts quit");render()}
+  if(a==="term"&&p)termToast(p);
+  if(a==="remove"&&p){S.profiles=S.profiles.filter(x=>x!==p);S.confirmRemove=null;toast(`Removed ${esc(p.name)}. Data folder kept, delete it from Backups if you want.`);render()}
+  if(a==="cancelrm"){S.confirmRemove=null;render()}
+  if(a==="route")routeLink();
+  if(el.dataset.ex){$("#linkIn").value=el.dataset.ex;routeLink()}
+  if(a==="addrule")toast("Rule editor: pick a folder, then an account");
+  if(a==="addmcp")toast("Paste a server command or pick one from the catalog");
+  if(a==="mcpfix"){const m=S.mcp.find(x=>x.name==="postgres-prod");m.on.work=false;m.status="ok";m.name="postgres-prod";toast("Disabled postgres-prod in Work · backup saved");render()}
+  if(el.dataset.mcp!=null){const m=S.mcp[+el.dataset.mcp];m.on[el.dataset.p]=!m.on[el.dataset.p];const on=m.on[el.dataset.p];el.setAttribute("aria-pressed",on);el.textContent=on?"✓":"";const pr=P(el.dataset.p);if(pr&&pr.running)toast(`${esc(m.name)} ${on?"added to":"removed from"} ${esc(pr.name)} · restart ${esc(pr.name)} to apply`)}
+  if(el.dataset.kit!=null){const k=S.kit[+el.dataset.kit],pid=el.dataset.p;k.on=k.on.includes(pid)?k.on.filter(x=>x!==pid):[...k.on,pid];render()}
+  if(a==="sync")toast("Kit synced · 2 skills pulled, 1 command pushed");
+  if(el.dataset.sp){S.sessP=el.dataset.sp;render()}
+  if(el.dataset.resume){const s=S.sessions.find(x=>x.id===el.dataset.resume),pr=P(s.p);toast(`Resuming in <b>${esc(pr?pr.name:"?")}</b>: <code>cd ${esc(s.project)} &amp;&amp; claude-${esc(pr?slug(pr):"")} --resume ${s.id}</code>`)}
+  if(el.dataset.range){S.obs.range=el.dataset.range;render()}
+  if(el.dataset.drill){S.obs.path=JSON.parse(el.dataset.drill);render()}
+  if(el.dataset.crumb!=null){S.obs.path=S.obs.path.slice(0,+el.dataset.crumb);render()}
+  if(a==="invoice")toast(`Exported <code>${esc(el.dataset.proj)}</code> usage as CSV, grouped by day and session`);
+  if(el.dataset.msgfrom){S.br.from=el.dataset.msgfrom;if(S.br.to===S.br.from)S.br.to=S.live.find(l=>l.id!==S.br.from&&!S.walls[l.p]).id;render();const ta=$("#brText");ta&&ta.focus()}
+  if(a==="jump"){const l=S.live.find(x=>x.id===el.dataset.l),pr=P(l.p);toast(`Opened <b>${esc(pr.name)}</b> at <code>${esc(l.project)}</code>`);if(l.state==="waiting"){l.state="working";l.task="Applying the approved migration plan";render()}}
+  if(el.dataset.kind){S.br.kind=el.dataset.kind;render()}
+  if(el.dataset.pk){S.br.packet[el.dataset.pk]=!S.br.packet[el.dataset.pk];render()}
+  if(el.dataset.wall){const id=el.dataset.wall;S.walls[id]=!S.walls[id];render()}
+  if(a==="send"){const fr=S.live.find(l=>l.id===S.br.from),to=S.live.find(l=>l.id===S.br.to),text=($("#brText").value||"").trim()||"(empty)";
+    const blocked=S.walls[fr.p]||S.walls[to.p];
+    const r={from:fr.id,to:to.id,kind:S.br.kind,text:S.br.kind==="Hand off"?text+" · packet: "+Object.entries(S.br.packet).filter(x=>x[1]).map(x=>x[0]).join(", "):text,t:"Just now",blocked,reply:blocked?"Blocked by the wall around "+(P(S.walls[fr.p]?fr.p:to.p).name)+".":"Delivered. Waiting for a reply…"};
+    S.relays.unshift(r);render();
+    if(!blocked)setTimeout(()=>{r.reply=S.br.kind==="Hand off"?"Accepted. I’ve read the summary and the open to-dos and I’m starting on validation.":S.br.kind==="Snippet"?"Got it, thanks. Saved to this project’s notes.":"Exponential backoff, 3 tries, starting at 400 ms. It lives in lib/fetchRetry.ts.";r.t="Just now · replied";if(S.view==="bridge")render();toast(`Reply from <b>${esc(P(to.p).name)}</b>`)},1600)}
+  if(el.dataset.ctlp){S.ctlP=el.dataset.ctlp;render()}
+  if(el.dataset.eff){const c=S.ctl[S.ctlP];c.effort=el.dataset.eff;c.dirty=true;render()}
+  if(el.dataset.ctlflag){const c=S.ctl[S.ctlP];c[el.dataset.ctlflag]=!c[el.dataset.ctlflag];c.dirty=true;render()}
+  if(el.dataset.hook!=null){const c=S.ctl[S.ctlP];c.hooks[+el.dataset.hook].on=!c.hooks[+el.dataset.hook].on;c.dirty=true;render()}
+  if(el.dataset.plug!=null){const c=S.ctl[S.ctlP];c.plugins[+el.dataset.plug].on=!c.plugins[+el.dataset.plug].on;c.dirty=true;render()}
+  if(el.dataset.rmrule){const c=S.ctl[S.ctlP],L=el.dataset.rmrule;c[L]=c[L].filter(x=>x!==el.dataset.r);c.dirty=true;render()}
+  if(a==="addallow"||a==="adddeny"){const v=$("#ruleIn").value.trim();if(v){const c=S.ctl[S.ctlP];c[a==="addallow"?"allow":"deny"].push(v);c.dirty=true;render()}}
+  if(el.dataset.tpl){const c=S.ctl[S.ctlP],k=el.dataset.tpl;
+    if(k==="strict")Object.assign(c,{mode:"default",effort:"high",allow:["Read(src/**)"],deny:["Read(.env*)","Bash(curl:*)","Bash(git push:*)","WebFetch"]});
+    if(k==="power")Object.assign(c,{mode:"auto",effort:"max",model:"Opus 5.5",allow:["Bash(npm:*)","Bash(git:*)","Edit(**)"],deny:["Read(.env*)","Bash(rm -rf:*)"]});
+    if(k==="learn")Object.assign(c,{mode:"plan",effort:"medium",style:"Learning",model:"Sonnet 5.5"});
+    c.dirty=true;render();toast("Preset loaded. Review the changes, then apply.")}
+  if(a==="apply"){const c=S.ctl[S.ctlP];c.dirty=false;render();toast(`Applied to <b>${esc(P(S.ctlP).name)}</b> · backup saved · running sessions pick it up on restart`)}
+  if(a==="copyto")toast("Pick accounts to copy to. Their current settings are backed up first.");
+  if(a==="backup")backup();
+  if(a==="move")toast("Creates one encrypted file to open on your other computer. Sign-ins are not included.");
+  if(a==="restore")toast("Pick which accounts and parts to restore. Running accounts are closed first.");
+  if(a==="where")toast("Choose a folder or an external drive");
+  if(a==="rundoc")runDoctor();
+  if(a==="docfix"){const i=+el.dataset.ci;if(i===2)go("mcp");else{el.replaceWith(Object.assign(document.createElement("span"),{className:"pill ok",textContent:"Cleared 1.4 GB"}))}}
+  if(el.dataset.set){const k=el.dataset.set;S.settings[k]=!S.settings[k];el.setAttribute("aria-checked",S.settings[k])}
+  if(el.hasAttribute("data-flip"))el.setAttribute("aria-checked",el.getAttribute("aria-checked")!=="true");
+});
+document.addEventListener("click",e=>{if(menuEl&&!e.target.closest(".menu"))closeMenu()});
+document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"&&S.tab==="proto"){e.preventDefault();openPal()}if(e.key==="Escape")closeMenu()});
+$("#osSeg").addEventListener("click",e=>{const b=e.target.closest("[data-os]");if(!b)return;S.os=b.dataset.os;store.set("os",S.os);$$("#osSeg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render();renderBP()});
+function setTab(tb){S.tab=tb;store.set("tab",tb);$("#tab-proto").setAttribute("aria-pressed",tb==="proto");$("#tab-bp").setAttribute("aria-pressed",tb==="bp");$("#proto").hidden=tb!=="proto";$("#blueprint").hidden=tb!=="bp"}
+$("#tab-proto").addEventListener("click",()=>setTab("proto"));
+$("#tab-bp").addEventListener("click",()=>setTab("bp"));
+
+/* ---------------- blueprint ---------------- */
+function renderBP(){
+  const pm=[
+    ["Separate accounts side by side","Own data folder per profile, launched with --user-data-dir","Same","open -n with --user-data-dir"],
+    ["Own dock / taskbar icon","WM_CLASS relabel under XWayland (Claude fixes its Wayland app id)","Per-profile shortcut + AppUserModelID (to verify)","Tiny launcher app per profile, own bundle id"],
+    ["claude:// link routing","MimeType in .desktop, single-instance forwards the URL","HKCU registry at runtime","Info.plist URL scheme, native open-url event"],
+    ["Claude Code profiles","CLAUDE_CONFIG_DIR per profile + folder-rule shim","Same","Same"],
+    ["Tray + global hotkey","AppIndicator tray, hotkey via portal on Wayland","System tray, RegisterHotKey","Menu bar extra, Carbon hotkey"],
+    ["Packages",".deb, .rpm, AppImage",".msi, NSIS .exe","Signed, notarized .dmg"]
+  ];
+  $("#blueprint").innerHTML=`<div class="bp">
+   <div class="lead"><span class="eyebrow">Product blueprint · v0.1</span>
+     <h2>The multi-account home Claude users keep asking for</h2>
+     <p>Claude Desktop holds one account at a time. People with a personal plan, a work seat and client accounts juggle sign-outs, browser profiles and shell aliases. Switchyard turns that into one small app: every account runs side by side, links and folders go to the right one, and the shared setup (skills, MCP servers, history) is managed in one place.</p>
+     <p class="hint">Stack: Tauri 2 (Rust core, React + TypeScript UI). Official plugins cover single-instance with deep links, tray, global shortcut, autostart and the updater.</p></div>
+
+   <div><span class="eyebrow">What the research says</span>
+    <div class="facts" style="margin-top:10px">
+     <div class="fact"><div class="big num">1,167</div><p>reactions on the GitHub request for multi-account switching in Claude Desktop, with more than 200 comments, as of October 22, 2026. Still open.</p><a href="https://github.com/anthropics/claude-code/issues/18435">anthropics/claude-code#18435</a></div>
+     <div class="fact"><div class="big">1 OS each</div><p>Existing desktop tools cover one platform. Claude Desktop Manager is Windows only ($10 or $30). claude-multiprofile is macOS only. About a dozen switchers handle Claude Code and nothing else.</p><a href="https://claudeprofiles.com/">claudeprofiles.com</a></div>
+     <div class="fact"><div class="big">0</div><p>tools found that switch named MCP configurations through a GUI. Config and skills sync across machines is also a long-running request, handled today with git and symlinks.</p><a href="https://claudeissues.com/issue/36693-no-native-way-to-sync-claude-code-config-and-skills-across-machines">Issue #36693</a></div>
+    </div></div>
+
+   <div><span class="eyebrow">Why people would pick it</span>
+    <div class="diff" style="margin-top:12px">
+     <div><b>Sessions that talk across accounts</b><p>Claude Code can already message sessions inside one account. The Bridge extends that across accounts, with walls you control.</p></div>
+     <div><b>Usage you can actually read</b><p>From “this week” down to the one test run that ate 7% of a session, with tips to cut it.</p></div>
+     <div><b>Full control, safely</b><p>Every Claude setting per account, presets for client work, and a diff before anything is written.</p></div>
+     <div><b>Desktop and terminal together</b><p>One profile covers the Claude app and Claude Code, so “Work” means the same account everywhere.</p></div>
+     <div><b>Three platforms, one app</b><p>Linux, Windows and macOS from one codebase, with the platform tricks hidden behind adapters.</p></div>
+     <div><b>Links land in the right place</b><p>Sign-in callbacks and dock actions reach the account that asked, which no current tool handles.</p></div>
+     <div><b>Folders pick the account</b><p>Type claude in ~/work and it runs as Work. Like Git identities, for Claude.</p></div>
+     <div><b>Local and careful</b><p>Never touches passwords or sign-in tokens, backs up before every config edit, sends no telemetry.</p></div>
+    </div></div>
+
+   <div><span class="eyebrow">Modules</span>
+    <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Module</th><th>What it does</th><th>Phase</th></tr></thead><tbody>
+     ${[["Profiles","Create, launch, quit and remove isolated accounts. Desktop window, terminal command and data folder per profile.","1"],
+       ["Dock identity","Each profile gets its own icon and window grouping on every platform.","1"],
+       ["Tray and quick switcher","Launch or focus any account from the tray or a global hotkey palette.","1"],
+       ["Link Router","Owns claude:// and routes each link by rules, the waiting sign-in, or by asking.","2"],
+       ["Folder Rules","A claude shim that picks the account from the current folder.","2"],
+       ["Observatory","Tokens and API-equivalent cost on every layer: account, project, session, tool call. Token types, model mix, heatmap, forecasts, client budgets with CSV export.","3"],
+       ["Bridge","Live board of every running session across accounts. Questions, snippets and task handoffs between accounts, approved by you, with walls around client accounts.","3"],
+       ["Control Center","Per-account model, thinking effort, permission mode, allow and deny rules, hooks, plugins, environment and presets, with a preview of the exact file change.","2"],
+       ["MCP Servers","Matrix of servers × accounts, health checks, backups of every edit.","3"],
+       ["Shared Kit","Skills, subagents, commands, hooks and CLAUDE.md shared by choice, synced through git with encrypted secrets.","3"],
+       ["Sessions","Search the Claude Code history of all accounts and resume in the right one.","3"],
+       ["Backups and moving","Scheduled encrypted snapshots, one-file export to a new computer, no sign-in data.","4"],
+       ["Doctor","Checks versions, update source, dock identity, locks, failing servers, cache size.","4"]
+      ].map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td class="c num">${r[2]}</td></tr>`).join("")}
+    </tbody></table></div></div>
+
+   <div><span class="eyebrow">Architecture</span>
+    <div class="arch" style="margin-top:10px">
+     <div class="layer"><div class="lname">Interface</div><div class="boxes"><div class="box">Main window<small>React + TypeScript</small></div><div class="box">Tray menu</div><div class="box">Quick switcher<small>global hotkey</small></div><div class="box">Link picker<small>“which account?”</small></div><div class="box">syd CLI<small>scripts and shim</small></div></div></div>
+     <div class="flow">↓ Tauri commands and events</div>
+     <div class="layer"><div class="lname">Rust core</div><div class="boxes"><div class="box k">Profile store<small>profiles.toml</small></div><div class="box k">Process supervisor<small>launch, focus, watch</small></div><div class="box k">Link router</div><div class="box k">Config editor<small>MCP JSON, backups</small></div><div class="box k">Usage indexer<small>local session logs</small></div><div class="box k">Kit sync<small>git + age encryption</small></div><div class="box k">Bridge broker<small>local MCP server per profile</small></div><div class="box k">OTel receiver<small>localhost only</small></div><div class="box k">Settings writer<small>diff, backup, apply</small></div></div></div>
+     <div class="flow">↓ one adapter per platform</div>
+     <div class="layer"><div class="lname">Platform</div><div class="boxes"><div class="box">Linux<small>.desktop, X11 class, xdg-mime</small></div><div class="box">Windows<small>shortcuts, AUMID, registry</small></div><div class="box">macOS<small>launcher bundles, Launch Services</small></div></div></div>
+     <div class="flow">↓ starts, never modifies</div>
+     <div class="layer"><div class="lname">Claude</div><div class="boxes"><div class="box">Claude Desktop<small>one instance per data folder</small></div><div class="box">Claude Code<small>CLAUDE_CONFIG_DIR per profile</small></div></div></div>
+    </div></div>
+
+   <div><span class="eyebrow">How each platform does it</span>
+    <div class="tbl-wrap" style="margin-top:10px"><table><thead><tr><th>Capability</th><th>Linux</th><th>Windows</th><th>macOS</th></tr></thead><tbody>
+     ${pm.map(r=>`<tr><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td>${r[3]}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p class="hint" style="margin-top:8px">The Linux column is what we already proved on your machine today: separate data folders, the X11 class fix for the dock, and CLAUDE_CONFIG_DIR for the terminal.</p></div>
+
+   <div><span class="eyebrow">Roadmap</span>
+    <div class="phases" style="margin-top:10px">
+     <div class="phase"><span class="n">PHASE 1 · CORE</span><h3>Linux first</h3><ul><li>Profiles and launching</li><li>Dock identity</li><li>Tray and quick switcher</li><li>Terminal commands</li><li>.deb and AppImage</li></ul></div>
+     <div class="phase"><span class="n">PHASE 2 · ROUTING</span><h3>All three OSes</h3><ul><li>Windows and macOS adapters</li><li>Link Router</li><li>Folder Rules shim</li><li>Control Center</li><li>Signed installers</li></ul></div>
+     <div class="phase"><span class="n">PHASE 3 · TOOLS</span><h3>Power features</h3><ul><li>Observatory</li><li>Bridge</li><li>MCP matrix</li><li>Shared Kit and sync</li><li>Session search</li></ul></div>
+     <div class="phase"><span class="n">PHASE 4 · CARE</span><h3>Polish</h3><ul><li>Backups and moving</li><li>Doctor</li><li>Auto-update</li><li>Arabic and RTL</li></ul></div>
+    </div></div>
+
+   <div><span class="eyebrow">Ground rules</span>
+    <div class="rules" style="margin-top:12px">
+     <div>Never read, copy or upload passwords or sign-in tokens.</div>
+     <div>Never modify Claude’s own files. Only launch it with different folders.</div>
+     <div>Back up every config before editing it, and only edit while that account is closed.</div>
+     <div>Keep platform tricks in versioned adapters, since a Claude update can change window ids or flags.</div>
+     <div>Independent name and icon. Say “works with Claude”, never imply it is from Anthropic.</div>
+     <div>Open source under a permissive licence, so users can check the claims above.</div>
+     <div>Follow Anthropic’s terms. Accounts are for separating real work (personal, employer, clients), not for getting around usage limits.</div>
+     <div>The Bridge only sends what you approve. Walled accounts never send or receive.</div>
+    </div></div>
+
+   <div><span class="eyebrow">Sources</span>
+    <ul class="src" style="margin-top:10px">
+     <li><a href="https://github.com/anthropics/claude-code/issues/18435">Feature request: multiple accounts in Claude Desktop (#18435)</a></li>
+     <li><a href="https://github.com/anthropics/claude-code/issues/27359">Named account profiles for Claude Code (#27359)</a></li>
+     <li><a href="https://claudeprofiles.com/">Claude Desktop Manager, Windows</a></li>
+     <li><a href="https://github.com/jmdarre-v/claude-multiprofile">claude-multiprofile, macOS</a></li>
+     <li><a href="https://github.com/guibes/claude-profile-switch">claude-profile-switch (CLI)</a></li>
+     <li><a href="https://github.com/fairy-pitta/cc-account-switcher">cc-account-switcher (CLI)</a></li>
+     <li><a href="https://agentsroom.dev/blog/multiple-accounts-in-the-claude-desktop-app">Multiple accounts in the Claude app</a></li>
+     <li><a href="https://claudeissues.com/issue/36693-no-native-way-to-sync-claude-code-config-and-skills-across-machines">No native config and skills sync (#36693)</a></li>
+     <li><a href="https://github.com/MediaPublishing/mcp-manager">mcp-manager, MCP GUI</a></li>
+     <li><a href="https://sessionwatcher.com/guides/claude-code-rate-limits-explained">How the 5-hour and weekly limits work</a></li>
+     <li><a href="https://github.com/tauri-apps/plugins-workspace">Tauri official plugins</a></li>
+     <li><a href="https://www.developersdigest.tech/blog/claude-code-cross-session-messaging-2026">Claude Code cross-session messaging</a></li>
+     <li><a href="https://blog.shreyaspatil.dev/session-bridge-i-made-two-claude-code-sessions-talk-to-each-other/">session-bridge: two sessions talking</a></li>
+     <li><a href="https://code.claude.com/docs/en/analytics">Claude Code analytics and OpenTelemetry</a></li>
+     <li><a href="https://continuumcode.ai/guides/track-claude-code-cost/">Tracking Claude Code token cost</a></li>
+     <li><a href="https://github.com/andyrewlee/awesome-agent-orchestrators">awesome-agent-orchestrators</a></li>
+     <li><a href="https://github.com/smtg-ai/claude-squad">claude-squad</a></li>
+     <li><a href="https://www.omgubuntu.co.uk/2026/07/claude-desktop-linux-beta">Claude Desktop for Linux beta</a></li>
+    </ul></div>
+  </div>`;
+}
+
+/* ---------------- boot ---------------- */
+$$("#osSeg button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.os===S.os));
+if(!V[S.view])S.view="profiles";
+render();renderBP();setTab(S.tab);
+})();
+</script>

@@ -1,0 +1,1229 @@
+<title>Facet</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@400;500;600&display=swap">
+<style>
+/* Layout: desktop-app window = account rail (left) + section nav + workspace. Each account is a "facet" with its own colour,
+   and that colour tints the whole window when you scope to it, so you always know which account you are in. */
+:root{
+  --bg:#F3F4F6; --surface:#FFFFFF; --surface2:#F9FAFB; --sunk:#EEF0F3; --rail:#E9EBEF;
+  --line:#E1E4E9; --line2:#ECEEF2;
+  --ink:#0D1015; --ink2:#4A515D; --ink3:#6B7380;
+  --focus:#3D63FF; --link:#2F4FE0;
+  --ok:#08875C; --ok-s:#DDF5EC; --warn:#9A5C00; --warn-s:#FDF0D8; --bad:#C2263C; --bad-s:#FCE3E7;
+  --f1:#0FA595; --f2:#7C4DEB; --f3:#E23D63; --f4:#D98300; --f5:#2F7BEB; --f6:#5E9E12;
+  --of1:#0D1015; --of2:#FFFFFF; --of3:#0D1015; --of4:#0D1015; --of5:#0D1015; --of6:#0D1015;
+  --sh:0 1px 2px rgba(13,16,21,.05),0 8px 28px -10px rgba(13,16,21,.18);
+  --sh2:0 24px 70px -20px rgba(13,16,21,.35);
+  --fd:"Bricolage Grotesque","Geist",system-ui,sans-serif;
+  --fb:"Geist","IBM Plex Sans Arabic",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --fm:"Geist Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#08090B; --surface:#111317; --surface2:#15181D; --sunk:#0C0E11; --rail:#0B0D10;
+  --line:#22262D; --line2:#1A1D23;
+  --ink:#EEF0F4; --ink2:#A4ABB7; --ink3:#858D99;
+  --focus:#7590FF; --link:#8EA3FF;
+  --ok:#2FD49A; --ok-s:#0F2A20; --warn:#F2B24B; --warn-s:#2E220C; --bad:#FF6B81; --bad-s:#35141B;
+  --f1:#2DD4BF; --f2:#A78BFA; --f3:#FB7194; --f4:#FBBF24; --f5:#60A5FA; --f6:#A3E635;
+  --of1:#0D1015; --of2:#0D1015; --of3:#0D1015; --of4:#0D1015; --of5:#0D1015; --of6:#0D1015;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -12px rgba(0,0,0,.7);
+  --sh2:0 30px 80px -20px rgba(0,0,0,.8);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#08090B; --surface:#111317; --surface2:#15181D; --sunk:#0C0E11; --rail:#0B0D10;
+  --line:#22262D; --line2:#1A1D23;
+  --ink:#EEF0F4; --ink2:#A4ABB7; --ink3:#858D99;
+  --focus:#7590FF; --link:#8EA3FF;
+  --ok:#2FD49A; --ok-s:#0F2A20; --warn:#F2B24B; --warn-s:#2E220C; --bad:#FF6B81; --bad-s:#35141B;
+  --f1:#2DD4BF; --f2:#A78BFA; --f3:#FB7194; --f4:#FBBF24; --f5:#60A5FA; --f6:#A3E635;
+  --of1:#0D1015; --of2:#0D1015; --of3:#0D1015; --of4:#0D1015; --of5:#0D1015; --of6:#0D1015;
+  --sh:0 1px 2px rgba(0,0,0,.4),0 10px 30px -12px rgba(0,0,0,.7);
+  --sh2:0 30px 80px -20px rgba(0,0,0,.8);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg)}
+body{color:var(--ink);font-family:var(--fb);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 56px}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.5}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:8px}
+.mono{font-family:var(--fm);font-size:.86em}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:1280px;margin:0 auto;display:grid;gap:16px}
+a{color:var(--link)}
+
+/* product header */
+.top{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;justify-content:space-between}
+.brand{display:flex;gap:12px;align-items:center;min-width:0}
+.brand h1{font-family:var(--fd);font-weight:650;font-size:28px;letter-spacing:-.035em;margin:0;line-height:1}
+.brand p{margin:4px 0 0;color:var(--ink2);font-size:13.5px;text-wrap:balance}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;background:var(--sunk);border:1px solid var(--line);border-radius:10px;padding:3px;gap:2px}
+.seg button{border:0;background:none;padding:5px 12px;border-radius:7px;color:var(--ink2);font-weight:500;font-size:13px;white-space:nowrap}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12),0 0 0 1px var(--line)}
+.iconbtn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);background:var(--surface);border-radius:10px;color:var(--ink2)}
+.iconbtn:hover{color:var(--ink)}
+.note{font-size:12px;color:var(--ink3);margin:10px 2px 0}
+
+/* window */
+.window{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh2);overflow:hidden;display:grid;grid-template-rows:auto 1fr;height:800px;
+  --tint:transparent}
+.window::after{content:"";position:absolute;inset:0;border-radius:16px;pointer-events:none;box-shadow:inset 0 0 0 2px var(--tint);transition:box-shadow .3s}
+.chrome{height:40px;display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line);background:var(--surface2);font-size:12.5px;color:var(--ink3);user-select:none}
+.chrome .ttl{flex:1;text-align:center;font-weight:500;color:var(--ink2);display:flex;gap:8px;justify-content:center;align-items:center}
+.chrome .ttl .dotc{width:8px;height:8px;border-radius:50%;background:var(--tint)}
+.lights{display:flex;gap:8px}.lights i{width:12px;height:12px;border-radius:50%;display:block}
+.lights i:nth-child(1){background:#FF5F57}.lights i:nth-child(2){background:#FEBC2E}.lights i:nth-child(3){background:#28C840}
+.gn{display:flex;gap:8px}.gn i{width:22px;height:22px;border-radius:50%;background:var(--line2);display:grid;place-items:center;font-style:normal;font-size:11px;color:var(--ink2)}
+.wc{display:flex;margin-right:-12px;align-self:stretch}.wc i{width:44px;display:grid;place-items:center;font-style:normal;color:var(--ink2)}
+.chrome.windows .ttl{justify-content:flex-start}
+.app{display:grid;grid-template-columns:64px 212px minmax(0,1fr);min-height:0}
+
+/* account rail */
+.rail{background:var(--rail);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 0;overflow:auto}
+.rail .r{position:relative;width:40px;height:40px;border-radius:12px;border:0;display:grid;place-items:center;font-family:var(--fd);font-weight:650;font-size:15px;color:var(--ofc,#fff);background:var(--fc);transition:border-radius .2s,transform .15s}
+.rail .r:hover{border-radius:15px;transform:translateY(-1px)}
+.rail .r[aria-pressed="true"]::before{content:"";position:absolute;inset-inline-start:-12px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:var(--ink)}
+[dir="rtl"] .rail .r[aria-pressed="true"]::before{border-radius:4px 0 0 4px}
+.rail .r .on{position:absolute;right:-2px;bottom:-2px;width:12px;height:12px;border-radius:50%;background:var(--ok);border:2px solid var(--rail)}
+.rail .all{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
+.rail .add{background:none;color:var(--ink3);border:1.5px dashed var(--line)}
+.rail hr{width:24px;border:0;border-top:1px solid var(--line);margin:2px 0}
+
+/* section nav */
+.side{background:var(--surface2);border-inline-end:1px solid var(--line);display:flex;flex-direction:column;gap:1px;padding:12px 10px;overflow:auto;min-width:0}
+.scope{display:flex;gap:10px;align-items:center;padding:6px 8px 12px;border-bottom:1px solid var(--line2);margin-bottom:6px}
+.scope b{display:block;font-size:13.5px;line-height:1.2}
+.scope span{font-size:11.5px;color:var(--ink3)}
+.side .grp{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink3);padding:12px 8px 4px;font-weight:500}
+.nav{display:flex;align-items:center;gap:10px;border:0;background:none;text-align:start;padding:6px 8px;border-radius:8px;color:var(--ink2);font-weight:500;white-space:nowrap}
+.nav svg{flex:none}
+.nav:hover{background:var(--sunk);color:var(--ink)}
+.nav[aria-current="page"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line),0 1px 2px rgba(0,0,0,.05)}
+.nav .cnt{margin-inline-start:auto;font-size:11px;color:var(--ink3);font-variant-numeric:tabular-nums}
+.nav .cnt.alert{color:var(--bad);font-weight:600}
+.tag{font-size:10px;font-weight:600;letter-spacing:.04em;padding:1px 6px;border-radius:5px;background:var(--sunk);color:var(--ink3);border:1px solid var(--line)}
+.tag.pro{background:var(--ink);color:var(--surface);border-color:transparent}
+.sidefoot{margin-top:auto;padding:12px 4px 0;display:grid;gap:8px;font-size:12px;color:var(--ink3)}
+.kbd{font-family:var(--fm);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:var(--surface);color:var(--ink2)}
+.palbtn{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 10px;color:var(--ink3);text-align:start}
+.palbtn span{flex:1}
+
+/* workspace */
+.main{overflow:auto;padding:26px 30px 44px;min-width:0;position:relative}
+.vh{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:20px}
+.vh h2{font-family:var(--fd);font-weight:650;font-size:24px;letter-spacing:-.03em;margin:0;line-height:1.15}
+.vh p{margin:5px 0 0;color:var(--ink2);max-width:64ch}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:7px 12px;font-weight:500;font-size:13px;white-space:nowrap;box-shadow:0 1px 1px rgba(0,0,0,.04)}
+.btn:hover:not(:disabled){border-color:var(--ink3)}
+.btn.pri{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.btn.pri:hover:not(:disabled){opacity:.9}
+.btn.ghost{background:none;border-color:transparent;box-shadow:none;color:var(--ink2)}
+.btn.ghost:hover{background:var(--sunk)}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:4px 9px;font-size:12px;border-radius:8px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:2px 9px;border-radius:999px;background:var(--sunk);color:var(--ink2);border:1px solid var(--line2);white-space:nowrap}
+.pill .d{width:6px;height:6px;border-radius:50%;background:currentColor}
+.pill.ok{background:var(--ok-s);color:var(--ok);border-color:transparent}
+.pill.warn{background:var(--warn-s);color:var(--warn);border-color:transparent}
+.pill.bad{background:var(--bad-s);color:var(--bad);border-color:transparent}
+.pill.ex{border-style:dashed;background:none;color:var(--ink3)}
+button.pill{cursor:pointer}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px}
+.muted{color:var(--ink3)}
+.hint{font-size:12px;color:var(--ink3)}
+.sec{display:grid;gap:12px;margin-top:26px}
+.sec>h3,.h3{margin:0;font-size:13.5px;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1}
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.av{width:26px;height:26px;border-radius:8px;display:inline-grid;place-items:center;font-family:var(--fd);font-weight:650;font-size:12px;color:var(--ofc,#fff);background:var(--fc);flex:none}
+.av.lg{width:42px;height:42px;border-radius:12px;font-size:17px}
+
+/* lists */
+.list{display:grid}
+.li{display:grid;align-items:center;gap:12px;padding:12px 16px;border-top:1px solid var(--line2)}
+.li:first-child{border-top:0}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{text-align:start;padding:10px 14px;border-top:1px solid var(--line2);vertical-align:middle}
+thead th{border-top:0;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:500;background:var(--surface2)}
+td.c,th.c{text-align:center}
+.set{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:13px 16px;border-top:1px solid var(--line2)}
+.set:first-child{border-top:0}
+.set b{display:block;font-weight:500}
+.set span{font-size:12px;color:var(--ink3)}
+.set select,.sel{border:1px solid var(--line);border-radius:9px;padding:6px 9px;background:var(--surface)}
+.tog{appearance:none;width:34px;height:20px;border-radius:99px;background:var(--line);position:relative;border:0;flex:none;transition:background .2s}
+.tog::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.tog[aria-checked="true"]{background:var(--ink)}
+.tog[aria-checked="true"]::after{transform:translateX(14px)}
+[dir="rtl"] .tog[aria-checked="true"]::after{transform:translateX(-14px)}
+.inp{border:1px solid var(--line);background:var(--surface);border-radius:9px;padding:8px 11px;width:100%;min-width:0}
+.inp:focus{border-color:var(--focus);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 18%,transparent)}
+textarea.inp{resize:vertical;min-height:74px}
+.field{display:grid;gap:6px}
+.field label{font-size:12px;font-weight:500;color:var(--ink2)}
+.callout{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font-size:13px}
+.callout.bad{background:var(--bad-s);border-color:transparent;color:var(--bad)}
+.callout.warn{background:var(--warn-s);border-color:transparent;color:var(--warn)}
+code.c{font-family:var(--fm);font-size:12px;background:var(--sunk);border:1px solid var(--line2);border-radius:6px;padding:2px 6px;overflow-wrap:anywhere}
+
+/* meters + bars */
+.meter{display:grid;gap:5px}
+.meter .r{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--ink2)}
+.bar{height:6px;border-radius:99px;background:var(--sunk);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px;background:var(--fc,var(--ink));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.bar i.hot{background:var(--bad)}
+
+/* today: facets timeline */
+.tl{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px 10px;overflow-x:auto}
+.tlg{position:relative;display:grid;grid-template-columns:120px minmax(0,1fr);row-gap:10px;min-width:620px}
+.tlg .lab{display:flex;gap:8px;align-items:center;font-size:13px;font-weight:500;min-width:0}
+.tlg .lab span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.track{position:relative;height:28px;border-radius:8px;background:var(--surface2);border:1px solid var(--line2)}
+.blk{position:absolute;top:3px;bottom:3px;border-radius:5px;background:color-mix(in srgb,var(--fc) 85%,transparent);display:flex;align-items:center;padding:0 7px;font-size:11px;color:#fff;overflow:hidden;white-space:nowrap;cursor:default}
+.blk.chat{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--fc) 55%,transparent) 0 6px,color-mix(in srgb,var(--fc) 35%,transparent) 6px 12px)}
+.hours{display:flex;justify-content:space-between;font-size:10.5px;color:var(--ink3);padding-top:4px}
+.nowline{position:absolute;top:-4px;bottom:-4px;width:2px;background:var(--ink);border-radius:2px;z-index:2}
+.nowline::before{content:"now";position:absolute;top:-16px;left:-10px;font-size:10px;font-weight:600;color:var(--ink)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:grid;gap:4px;min-width:0}
+.stat small{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink3);font-weight:500}
+.stat b{font-family:var(--fd);font-weight:650;font-size:24px;letter-spacing:-.03em;line-height:1.1}
+.stat span{font-size:12px;color:var(--ink2)}
+
+/* accounts */
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.acc{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:14px;min-width:0;overflow:hidden}
+.acc::before{content:"";position:absolute;inset:0 0 auto 0;height:64px;background:linear-gradient(180deg,color-mix(in srgb,var(--fc) 14%,transparent),transparent);pointer-events:none}
+.acc>*{position:relative}
+.acch{display:flex;gap:12px;align-items:center;min-width:0}
+.acch .who{min-width:0;flex:1}
+.acch b{display:block;font-size:15.5px;letter-spacing:-.01em}
+.acch .who span{display:block;color:var(--ink3);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.surf{display:flex;flex-wrap:wrap;gap:6px}
+.surf span{font-size:12px;display:inline-flex;gap:6px;align-items:center;color:var(--ink2);background:var(--surface2);border:1px solid var(--line2);border-radius:7px;padding:3px 8px}
+.surf span.off{opacity:.5;text-decoration:line-through}
+.accf{display:flex;flex-wrap:wrap;gap:8px;align-items:center;border-top:1px solid var(--line2);padding-top:12px}
+.confirm{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12.5px;color:var(--bad)}
+
+/* drill */
+.crumbs{display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-size:13px}
+.crumbs button{border:0;background:none;color:var(--link);padding:2px 5px;border-radius:6px;font-weight:500}
+.crumbs button:last-child{color:var(--ink);cursor:default}
+.crumbs i{color:var(--ink3);font-style:normal}
+.drow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.6fr) 84px 76px;gap:12px;align-items:center;padding:11px 16px;border:0;border-top:1px solid var(--line2);text-align:start;background:none;width:100%}
+.drow:first-child{border-top:0}
+button.drow:hover{background:var(--surface2)}
+.drow .bar{height:8px}
+.split{display:flex;height:10px;border-radius:99px;overflow:hidden;background:var(--sunk);gap:2px}
+.split i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--ink2)}
+.legend span{display:inline-flex;gap:6px;align-items:center}
+.legend i{width:9px;height:9px;border-radius:3px;background:var(--fc)}
+.heat{display:grid;grid-template-columns:34px repeat(24,minmax(0,1fr));gap:3px;font-size:10px;color:var(--ink3);min-width:520px}
+.heat i{aspect-ratio:1;border-radius:3px;background:color-mix(in srgb,var(--fc,var(--f5)) calc(var(--v)*100%),var(--sunk))}
+.locked{position:relative}
+.locked .veil{position:absolute;inset:0;border-radius:14px;background:color-mix(in srgb,var(--surface) 72%,transparent);backdrop-filter:blur(3px);display:grid;place-items:center;text-align:center;padding:16px;z-index:3}
+.veil div{display:grid;gap:8px;justify-items:center;max-width:300px}
+
+/* ecosystem */
+.eco{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.pack{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:10px;text-align:start;min-width:0;align-content:start}
+.pack:hover{border-color:var(--ink3)}
+.pack .ph{display:flex;gap:10px;align-items:center}
+.pack .ic{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--sunk);border:1px solid var(--line2);font-family:var(--fd);font-weight:650}
+.pack b{display:block}
+.pack p{margin:0;color:var(--ink2);font-size:13px}
+.risk{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:600}
+.risk i{width:22px;height:6px;border-radius:9px;background:linear-gradient(90deg,var(--c) var(--w),var(--line) var(--w))}
+.drawer{position:absolute;inset:0;z-index:40;display:flex;justify-content:flex-end;background:color-mix(in srgb,var(--ink) 25%,transparent)}
+.drawer .panel{width:min(480px,100%);height:100%;background:var(--surface);border-inline-start:1px solid var(--line);box-shadow:var(--sh2);display:grid;grid-template-rows:auto 1fr auto;animation:slide .25s cubic-bezier(.2,.8,.2,1)}
+[dir="rtl"] .drawer{justify-content:flex-start}
+@keyframes slide{from{transform:translateX(24px);opacity:0}to{transform:none;opacity:1}}
+.drawer header,.drawer footer{padding:16px 18px;display:flex;gap:10px;align-items:center}
+.drawer header{border-bottom:1px solid var(--line2)}
+.drawer footer{border-top:1px solid var(--line2);flex-wrap:wrap}
+.drawer .body{overflow:auto;padding:16px 18px;display:grid;gap:14px;align-content:start}
+.adds{display:grid;gap:8px}
+.add{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;align-items:start;font-size:13px}
+.add .k{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--sunk);color:var(--ink2)}
+.add .k.w{background:var(--warn-s);color:var(--warn)}.add .k.b{background:var(--bad-s);color:var(--bad)}
+.chk2{display:flex;gap:8px;align-items:center;font-size:13px}
+.chk2 input{accent-color:var(--ink)}
+
+/* bridge */
+.st{display:inline-flex;gap:6px;align-items:center;font-size:12px;font-weight:500}
+.st i{width:8px;height:8px;border-radius:50%;background:var(--ink3)}
+.st.working i{background:var(--ok);box-shadow:0 0 0 3px var(--ok-s);animation:pulse 1.6s ease-in-out infinite}
+.st.waiting i{background:var(--warn)}
+@keyframes pulse{50%{box-shadow:0 0 0 6px transparent}}
+.msg{display:grid;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.msg .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:12px;color:var(--ink3)}
+.msg .reply{border-inline-start:2px solid var(--line);padding-inline-start:10px;color:var(--ink2);font-size:13px}
+
+/* health */
+.chk{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:12px;align-items:start;padding:13px 16px;border-top:1px solid var(--line2)}
+.chk:first-child{border-top:0}
+.chk .i{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;color:#fff;background:var(--line)}
+.chk .i.ok{background:var(--ok)}.chk .i.warn{background:var(--warn)}.chk .i.bad{background:var(--bad)}
+.chk .i.run{background:none;border:2px solid var(--line);border-top-color:var(--ink);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chk b{display:block;font-weight:500}
+.chk p{margin:2px 0 0;color:var(--ink2);font-size:13px}
+
+/* overlays */
+.overlay{position:absolute;inset:0;background:color-mix(in srgb,var(--ink) 30%,transparent);z-index:50;display:flex;justify-content:center;align-items:flex-start;padding:64px 16px 16px}
+.pal{width:min(560px,100%);background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh2);overflow:hidden}
+.pal input{border:0;border-bottom:1px solid var(--line);width:100%;padding:15px 16px;font-size:15px;background:none;outline:none}
+.pal ul{list-style:none;margin:0;padding:6px;max-height:340px;overflow:auto}
+.pal li{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:9px;cursor:pointer}
+.pal li[aria-selected="true"]{background:var(--sunk)}
+.pal li .k{margin-inline-start:auto;font-size:11px;color:var(--ink3)}
+.modal{width:min(640px,100%);background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh2);display:grid;max-height:calc(100% - 20px);overflow:auto}
+.modal header,.modal footer{padding:16px 20px;display:flex;align-items:center;gap:10px}
+.modal header{border-bottom:1px solid var(--line2)}
+.modal header h3{margin:0;font-family:var(--fd);font-weight:650;font-size:18px;letter-spacing:-.02em;flex:1}
+.modal footer{border-top:1px solid var(--line2);justify-content:flex-end}
+.modal .body{padding:20px;display:grid;gap:16px}
+.steps{display:flex;gap:6px;padding:12px 20px 0;flex-wrap:wrap}
+.steps span{font-size:12px;font-weight:500;color:var(--ink3);display:inline-flex;gap:6px;align-items:center}
+.steps span i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;border:1px solid var(--line)}
+.steps span.on{color:var(--ink)}.steps span.on i{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+.steps span.done i{background:var(--ok);color:#fff;border-color:var(--ok)}
+.steps em{font-style:normal;color:var(--line)}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw button{width:30px;height:30px;border-radius:9px;border:2px solid transparent;background:var(--fc)}
+.sw button[aria-pressed="true"]{border-color:var(--ink);box-shadow:inset 0 0 0 2px var(--surface)}
+.checks{display:grid;gap:10px}
+.checks label{display:flex;gap:10px;align-items:flex-start;font-size:13px}
+.checks input{margin-top:3px;accent-color:var(--ink)}
+.preview{background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;display:grid;gap:7px;font-size:12.5px}
+.preview div{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap}
+.preview span:first-child{color:var(--ink3)}
+.toasts{position:absolute;inset-inline-end:16px;bottom:16px;display:grid;gap:8px;z-index:60;pointer-events:none;max-width:calc(100% - 32px)}
+.toast{background:var(--ink);color:var(--surface);padding:10px 14px;border-radius:11px;font-size:13px;box-shadow:var(--sh);animation:tin .25s ease both;max-width:400px}
+.toast code{font-family:var(--fm);font-size:11.5px;opacity:.8}
+@keyframes tin{from{transform:translateY(8px);opacity:0}to{transform:none;opacity:1}}
+.menu{position:absolute;z-index:30;background:var(--surface);border:1px solid var(--line);border-radius:11px;box-shadow:var(--sh);padding:5px;display:grid;min-width:200px}
+.menu button{border:0;background:none;text-align:start;padding:7px 10px;border-radius:7px;font-size:13px}
+.menu button:hover{background:var(--sunk)}
+
+/* blueprint */
+.bp{display:grid;gap:30px}
+.hero{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:clamp(22px,4vw,40px);display:grid;gap:14px;position:relative;overflow:hidden}
+.hero::after{content:"";position:absolute;inset:auto -60px -80px auto;width:280px;height:280px;background:conic-gradient(from 200deg,var(--f1),var(--f2),var(--f3),var(--f4),var(--f1));opacity:.12;border-radius:50%;filter:blur(30px);pointer-events:none}
+.eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink3);font-weight:600}
+.bp h2{font-family:var(--fd);font-weight:650;font-size:clamp(24px,3.4vw,38px);letter-spacing:-.035em;margin:0;line-height:1.08;text-wrap:balance;max-width:24ch}
+.bp h3{font-family:var(--fd);font-weight:650;font-size:19px;letter-spacing:-.02em;margin:0}
+.bp p{margin:0;max-width:70ch;color:var(--ink2)}
+.verdict{display:flex;flex-wrap:wrap;gap:8px}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;display:grid;gap:6px;align-content:start}
+.fact b{font-family:var(--fd);font-weight:650;font-size:30px;letter-spacing:-.035em;line-height:1}
+.fact p{font-size:13px}
+.fact a{font-size:12px}
+.cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:10px;align-content:start}
+.box ul{margin:0;padding-inline-start:18px;display:grid;gap:6px;color:var(--ink2);font-size:13.5px}
+.box.no{background:var(--surface2)}
+.tiers{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.tier{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:grid;gap:10px;align-content:start}
+.tier.hl{border-color:var(--ink);box-shadow:var(--sh)}
+.tier .p{font-family:var(--fd);font-weight:650;font-size:26px;letter-spacing:-.03em}
+.tier ul{margin:0;padding-inline-start:18px;display:grid;gap:5px;color:var(--ink2);font-size:13px}
+.tests{counter-reset:t;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.test{counter-increment:t;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--ink2)}
+.test::before{content:counter(t);width:26px;height:26px;border-radius:8px;background:var(--sunk);display:grid;place-items:center;font-family:var(--fm);font-size:12px;color:var(--ink)}
+.test b{color:var(--ink);font-weight:600;display:block}
+.src{columns:2;column-gap:28px;font-size:13px;margin:0;padding-inline-start:18px}
+.src li{margin-bottom:6px;break-inside:avoid}
+
+/* timeline */
+.tlbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.tlrange{font-size:12px;color:var(--ink2)}
+.tlwrap{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 0 2px;overflow:hidden}
+.tlwrap canvas{display:block;touch-action:none;cursor:grab}
+.tlwrap canvas:focus-visible{outline:2px solid var(--focus);outline-offset:-2px}
+.tltip{position:absolute;z-index:5;pointer-events:none;background:var(--ink);color:var(--surface);font-size:12px;padding:7px 10px;border-radius:8px;max-width:240px;box-shadow:var(--sh)}
+.tlmini{margin-top:8px;border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer}
+.tlmini canvas{display:block;touch-action:none}
+.tlgrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:14px;margin-top:14px;align-items:start}
+@media (max-width:1060px){.tlgrid{grid-template-columns:minmax(0,1fr)}}
+
+[dir="rtl"]{font-family:"IBM Plex Sans Arabic",var(--fb)}
+[dir="rtl"] .vh h2{font-family:"IBM Plex Sans Arabic",var(--fb);font-weight:600;letter-spacing:0}
+
+@media (max-width:1060px){.eco{grid-template-columns:repeat(2,minmax(0,1fr))}.facts{grid-template-columns:repeat(2,minmax(0,1fr))}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.two{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:880px){
+  .window{height:auto}
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{flex-direction:row;padding:10px 12px;border-inline-end:0;border-bottom:1px solid var(--line);overflow-x:auto;justify-content:flex-start}
+  .rail hr{width:1px;height:24px;border:0;border-left:1px solid var(--line);margin:0 2px}
+  .rail .r[aria-pressed="true"]::before{inset-inline-start:8px;right:8px;top:auto;bottom:-10px;width:auto;height:3px;border-radius:3px}
+  .side{flex-direction:row;overflow-x:auto;border-inline-end:0;border-bottom:1px solid var(--line);padding:8px}
+  .side .grp,.sidefoot,.scope{display:none}
+  .main{overflow:visible;padding:20px 16px 30px}
+  .cards,.cols,.tiers,.tests{grid-template-columns:minmax(0,1fr)}
+  .src{columns:1}
+  .overlay,.drawer,.toasts{position:fixed}
+}
+@media (max-width:600px){.eco,.facts,.stats{grid-template-columns:minmax(0,1fr)}.drow{grid-template-columns:minmax(0,1fr) 70px 64px}.drow .bar{display:none}.brand h1{font-size:24px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+        <rect width="44" height="44" rx="13" fill="var(--ink)"/>
+        <path d="M22 9 33 15.5v13L22 35 11 28.5v-13z" fill="none" stroke="var(--surface)" stroke-width="1.6" stroke-linejoin="round"/>
+        <path d="M22 9v13l11-6.5z" fill="var(--f1)"/><path d="M22 22 33 28.5V15.5z" fill="var(--f2)"/><path d="M22 22v13l11-6.5z" fill="var(--f3)"/><path d="M22 22 11 28.5 22 35z" fill="var(--f4)"/>
+      </svg>
+      <div><h1>Facet</h1><p>Keep work, personal and client Claude accounts apart, see what each one costs, and know what a plugin does before you install it.</p></div>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" aria-label="View"><button id="tabP" aria-pressed="true">Prototype</button><button id="tabB" aria-pressed="false">Blueprint</button></div>
+      <div class="seg" role="group" aria-label="Platform" id="osSeg"><button data-os="linux" aria-pressed="true">Linux</button><button data-os="windows" aria-pressed="false">Windows</button><button data-os="macos" aria-pressed="false">macOS</button></div>
+      <button class="iconbtn" id="themeBtn" aria-label="Switch light or dark"></button>
+    </div>
+  </header>
+
+  <section id="proto">
+    <div class="window" id="win">
+      <div class="chrome" id="chrome"></div>
+      <div class="app" id="app">
+        <nav class="rail" id="rail" aria-label="Accounts"></nav>
+        <nav class="side" id="side" aria-label="Sections"></nav>
+        <main class="main" id="main" tabindex="-1"></main>
+      </div>
+      <div class="toasts" id="toasts" aria-live="polite"></div>
+    </div>
+    <p class="note">Concept prototype with sample data. Freelance and Client Lab stand in for your two new accounts, and the ecosystem packs are made-up examples. Facet is an independent idea, not affiliated with or endorsed by Anthropic.</p>
+  </section>
+  <section id="blueprint" hidden></section>
+</div>
+
+<script>
+(function(){
+"use strict";
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const store={get(k,d){try{const v=localStorage.getItem("facet:"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("facet:"+k,JSON.stringify(v))}catch(e){}}};
+const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+const M=60000,now=Date.now();
+
+/* ================= state ================= */
+const S={
+  os:store.get("os","linux"),tab:store.get("tab","p"),view:store.get("view","today"),scope:"all",lang:"en",pro:true,theme:store.get("theme","system"),
+  profiles:[
+    {id:"personal",name:"Personal",email:"you@personal.example",plan:"Pro",fc:"f1",running:true,desktop:true,cli:true,session:38,weekly:52,reset:now+134*M,tint:true,ex:false},
+    {id:"work",name:"Work",email:"you@company.example",plan:"Max 20x",fc:"f2",running:true,desktop:true,cli:true,session:71,weekly:44,reset:now+72*M,tint:true,ex:false},
+    {id:"freelance",name:"Freelance",email:"you@studio.example",plan:"Max 5x",fc:"f3",running:false,desktop:true,cli:true,session:12,weekly:20,reset:now+251*M,tint:true,ex:true},
+    {id:"lab",name:"Client Lab",email:"you@client.example",plan:"Team",fc:"f4",running:false,desktop:true,cli:false,session:0,weekly:8,reset:null,tint:true,ex:true}
+  ],
+  confirmRm:null,
+  day:{personal:[[7.2,8.1,"code","Rust questions"],[13,13.6,"chat","Recipe ideas"],[16.5,19.5,"code","Facet prototype"]],
+       work:[[9,11.4,"code","shop-api tests"],[11.8,12.3,"chat","Email draft"],[13.4,16.2,"code","Queue migration"],[16.6,17.5,"code","Review"]],
+       freelance:[[8.3,9,"chat","Client brief"],[19.6,21.5,"code","Bakery site"]],
+       lab:[[10,10.8,"code","ETL review"]]},
+  obs:{range:"7d",path:[],tree:{
+    personal:[{name:"~ (home)",s:[{t:"Second Claude instance on Ubuntu",tok:3.9,cost:5.1,model:"Opus 5.5"},{t:"Facet prototype",tok:2.4,cost:3.2,model:"Opus 5.5"}]},{name:"~/learn/rust",s:[{t:"Rust ownership questions",tok:.6,cost:.7,model:"Sonnet 5.5"}]}],
+    work:[{name:"~/work/shop-api",s:[{t:"Fix flaky checkout test",tok:9.8,cost:12.6,model:"Opus 5.5"},{t:"Add rate limiting",tok:5.1,cost:6.3,model:"Sonnet 5.5"}]},{name:"~/work/infra",s:[{t:"Migrate cron jobs to queues",tok:7.4,cost:9.9,model:"Opus 5.5"},{t:"Terraform drift report",tok:1.9,cost:1.6,model:"Haiku 4.5"}]}],
+    freelance:[{name:"~/clients/bakery-site",s:[{t:"Landing page hero variants",tok:6.2,cost:7.9,model:"Opus 5.5"},{t:"Contact form validation",tok:1.4,cost:1.5,model:"Sonnet 5.5"}]},{name:"~/clients/billing",s:[{t:"Invoice PDF generator",tok:3.1,cost:3.8,model:"Sonnet 5.5"}]}],
+    lab:[{name:"~/clients/acme/etl",s:[{t:"Data cleaning notebook review",tok:2.2,cost:2.4,model:"Sonnet 5.5"}]}]},
+    budgets:[{p:"freelance",client:"Bakery & Co",proj:"~/clients/bakery-site",limit:40,used:27.3},{p:"freelance",client:"Ledger Ltd",proj:"~/clients/billing",limit:25,used:9.8},{p:"lab",client:"Acme",proj:"~/clients/acme/etl",limit:15,used:13.1}]},
+  ctl:{},ctlP:null,
+  ecoF:"all",ecoQ:"",ecoTab:"discover",
+  eco:[
+    {id:"shipwright",name:"Shipwright",kind:"Skill pack",by:"Community",pop:"12.4k",desc:"Plan, build, review and ship. 18 skills and 7 commands for a full feature workflow.",
+      adds:{skills:18,commands:7,agents:3},hooks:[["PreToolUse","node ~/.claude/shipwright/guard.js","Runs before every tool call"]],perms:["Edit(**)","Bash(git:*)"],env:[],net:[],files:["~/.claude/skills/shipwright/**","~/.claude/commands/ship-*.md"],
+      risk:"medium",why:["Adds a hook that runs before every tool call","Asks for edit access to every file"],inst:["personal","freelance"]},
+    {id:"testpilot",name:"Test Pilot",kind:"Plugin",by:"Community",pop:"3.1k",desc:"Writes a test for each change and runs your test suite after edits.",
+      adds:{skills:2,commands:3,agents:1},hooks:[["PostToolUse","npm test --silent","Runs after file edits"]],perms:["Bash(npm test:*)"],env:[],net:[],files:["~/.claude/plugins/test-pilot/**"],
+      risk:"low",why:["Only runs your own test command"],inst:["work"]},
+    {id:"pagefetch",name:"Page Fetcher",kind:"MCP server",by:"Unknown author",pop:"410",desc:"Fetches and summarises web pages for research.",
+      adds:{tools:4},hooks:[],perms:["WebFetch"],env:["FETCH_API_KEY"],net:["Any website (outbound)","api.pagefetch.example"],files:[],run:"npx -y pagefetch-mcp@latest",
+      risk:"high",why:["Can reach any website","Downloads its latest version every time it starts","Sends pages to a third-party API with your key"],inst:[]},
+    {id:"browser",name:"Browser automation",kind:"MCP server",by:"Well-known maintainer",pop:"28k",desc:"Drives a local browser for testing and screenshots.",
+      adds:{tools:22},hooks:[],perms:[],env:[],net:["localhost","Sites you ask it to open"],files:["~/.cache/ms-playwright/**"],run:"npx @playwright/mcp@0.0.41",
+      risk:"medium",why:["Opens real web pages in a browser","Pinned version, reputable maintainer"],inst:["personal","freelance","lab"]},
+    {id:"reviewer",name:"Code reviewer",kind:"Plugin",by:"Official marketplace",pop:"44k",desc:"Reviews your diff for bugs before you commit.",
+      adds:{commands:1,agents:2},hooks:[],perms:["Bash(git diff:*)"],env:[],net:[],files:["~/.claude/plugins/code-review/**"],
+      risk:"low",why:["Reads diffs only","From the official marketplace"],inst:["personal","work","freelance"]},
+    {id:"pginspect",name:"Postgres inspector",kind:"MCP server",by:"Community",pop:"1.9k",desc:"Lets Claude read table schemas and run read-only queries.",
+      adds:{tools:6},hooks:[],perms:[],env:["DATABASE_URL"],net:["Your database host"],files:[],run:"uvx pg-inspect-mcp==1.4.2",
+      risk:"medium",why:["Reads your database with the credentials you give it","Read-only by default"],inst:["work"]}
+  ],
+  ecoOpen:null,
+  sessions:[
+    {id:"9f2c41",title:"Fix flaky checkout test",project:"~/work/shop-api",p:"work",t:"Today 16:02",msgs:48},
+    {id:"1ab7e0",title:"Second Claude instance on Ubuntu",project:"~",p:"personal",t:"Today 18:40",msgs:96},
+    {id:"c03d88",title:"Landing page hero variants",project:"~/clients/bakery-site",p:"freelance",t:"Yesterday",msgs:31},
+    {id:"77e1b2",title:"Migrate cron jobs to queues",project:"~/work/infra",p:"work",t:"Yesterday",msgs:64},
+    {id:"4d9a10",title:"Data cleaning notebook review",project:"~/clients/acme/etl",p:"lab",t:"Fri",msgs:22},
+    {id:"e58f03",title:"Rust ownership questions",project:"~/learn/rust",p:"personal",t:"Thu",msgs:17},
+    {id:"b2c6aa",title:"Invoice PDF generator",project:"~/clients/billing",p:"freelance",t:"Wed",msgs:39}],
+  sessQ:"",
+  folders:[{glob:"~/work/**",to:"work"},{glob:"~/clients/acme/**",to:"lab"},{glob:"~/clients/**",to:"freelance"},{glob:"**",to:"personal"}],
+  live:[
+    {id:"s1",p:"work",project:"~/work/shop-api",task:"Running the checkout test suite",state:"working"},
+    {id:"s2",p:"work",project:"~/work/infra",task:"Waiting for you to approve a migration plan",state:"waiting"},
+    {id:"s3",p:"personal",project:"~",task:"Designing the Facet prototype",state:"working"},
+    {id:"s4",p:"freelance",project:"~/clients/bakery-site",task:"Idle for 25 min",state:"idle"}],
+  walls:{lab:true},bridgeTest:null,
+  relays:[{from:"s3",to:"s1",text:"Which Node version does shop-api pin?",reply:"v22.4, from .nvmrc.",t:"12 min ago"}],
+  br:{from:"s3",to:"s1"},
+  doctorRan:false,
+  settings:{tray:true,login:true,notify:true,threshold:80,weekly:true}
+};
+const P=id=>S.profiles.find(p=>p.id===id);
+const scoped=()=>S.scope==="all"?S.profiles:S.profiles.filter(p=>p.id===S.scope);
+
+/* ================= i18n (app window) ================= */
+const T={en:{today:"Today",timeline:"Timeline",accounts:"Accounts",costs:"Costs",control:"Control",ecosystem:"Ecosystem",sessions:"Sessions",folders:"Folder rules",bridge:"Bridge",health:"Health",settings:"Settings",g1:"Overview",g2:"Manage",g3:"Work",g4:"System",search:"Search or run…",all:"All accounts",allsub:"Everything at once"},
+ ar:{today:"اليوم",timeline:"الخط الزمني",accounts:"الحسابات",costs:"التكاليف",control:"التحكم",ecosystem:"الإضافات",sessions:"الجلسات",folders:"قواعد المجلدات",bridge:"الجسر",health:"الصحة",settings:"الإعدادات",g1:"نظرة عامة",g2:"الإدارة",g3:"العمل",g4:"النظام",search:"ابحث أو نفّذ…",all:"كل الحسابات",allsub:"كل شيء معاً"}};
+const t=k=>T[S.lang][k]||T.en[k];
+
+/* ================= platform ================= */
+const slug=p=>p.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"account";
+const cap=p=>p.name.replace(/[^A-Za-z0-9]+/g,"-").replace(/^-|-$/g,"")||"Account";
+const OS={
+ linux:{dir:p=>p.id==="personal"?"~/.config/Claude":`~/.config/Claude-${cap(p)}`,cli:p=>p.id==="personal"?"~/.claude":`~/.claude-${slug(p)}`,entry:p=>`App menu entry “Claude (${p.name})”`,mod:"Ctrl",
+   ident:"Own dock icon under X11. On native Wayland, Facet tells windows apart with a coloured badge and title instead."},
+ windows:{dir:p=>p.id==="personal"?"%APPDATA%\\Claude":`%APPDATA%\\Claude-${cap(p)}`,cli:p=>p.id==="personal"?"%USERPROFILE%\\.claude":`%USERPROFILE%\\.claude-${slug(p)}`,entry:p=>`Start menu shortcut “Claude (${p.name})”`,mod:"Ctrl",
+   ident:"Coloured title badge and Start menu shortcut. Separate taskbar groups are not promised on Windows yet."},
+ macos:{dir:p=>p.id==="personal"?"~/Library/Application Support/Claude":`~/Library/Application Support/Claude-${cap(p)}`,cli:p=>p.id==="personal"?"~/.claude":`~/.claude-${slug(p)}`,entry:p=>`Launcher app “Claude (${p.name})”`,mod:"⌘",
+   ident:"Own launcher icon. Running windows share Claude’s Dock icon, so Facet adds a coloured badge."}
+};
+
+/* ================= icons ================= */
+const I={
+ today:'<rect x="3" y="4" width="12" height="11" rx="2"/><path d="M3 7.5h12M6.5 2.5v3M11.5 2.5v3"/>',
+ timeline:'<path d="M2.5 9h13"/><circle cx="5" cy="9" r="1.6" fill="currentColor"/><circle cx="10" cy="9" r="2.4"/><path d="M14 6v6M7.5 5v8"/>',
+ accounts:'<circle cx="6.5" cy="7" r="2.3"/><path d="M2.5 14c.5-2.2 2-3.3 4-3.3s3.5 1.1 4 3.3"/><circle cx="12.5" cy="6" r="1.8"/><path d="M11.5 9.6c1.9 0 3.4.9 4 3"/>',
+ costs:'<path d="M3 14.5V9M7 14.5V5M11 14.5v-4M15 14.5V3.5"/>',
+ control:'<path d="M4 3v12M9 3v12M14 3v12"/><circle cx="4" cy="11" r="1.7" fill="var(--surface2)"/><circle cx="9" cy="6" r="1.7" fill="var(--surface2)"/><circle cx="14" cy="10" r="1.7" fill="var(--surface2)"/>',
+ ecosystem:'<path d="M9 2.5 15 6v6l-6 3.5L3 12V6z"/><path d="M3 6l6 3.5L15 6M9 9.5v6"/>',
+ sessions:'<path d="M3 4h12v8H8l-3 2.5V12H3z"/>',
+ folders:'<path d="M2.5 5.5c0-.8.6-1.5 1.5-1.5h3l1.5 1.5H14c.8 0 1.5.7 1.5 1.5v6c0 .8-.7 1.5-1.5 1.5H4c-.9 0-1.5-.7-1.5-1.5z"/>',
+ bridge:'<path d="M2.5 12.5c2-4 4.5-6 6.5-6s4.5 2 6.5 6M2.5 12.5h13M6 12.5V9.3M12 12.5V9.3M9 12.5V6.5"/>',
+ health:'<path d="M2.5 9h3l1.5-4 3 8 1.5-4h4"/>',
+ settings:'<circle cx="9" cy="9" r="2.3"/><path d="M9 2.5v2M9 13.5v2M2.5 9h2M13.5 9h2M4.4 4.4l1.4 1.4M12.2 12.2l1.4 1.4M4.4 13.6l1.4-1.4M12.2 5.8l1.4-1.4"/>',
+ search:'<circle cx="8" cy="8" r="4.5"/><path d="m11.5 11.5 3 3"/>',
+ plus:'<path d="M9 4v10M4 9h10"/>',
+ dots:'<circle cx="4.5" cy="9" r="1.1" fill="currentColor"/><circle cx="9" cy="9" r="1.1" fill="currentColor"/><circle cx="13.5" cy="9" r="1.1" fill="currentColor"/>',
+ play:'<path d="M6 4.5v9l7-4.5z" fill="currentColor" stroke="none"/>',
+ term:'<rect x="2.5" y="3.5" width="13" height="11" rx="2"/><path d="m5.5 7.5 2 1.5-2 1.5M9.5 11h3"/>',
+ grid:'<rect x="3" y="3" width="5" height="5" rx="1.2"/><rect x="10" y="3" width="5" height="5" rx="1.2"/><rect x="3" y="10" width="5" height="5" rx="1.2"/><rect x="10" y="10" width="5" height="5" rx="1.2"/>',
+ sun:'<circle cx="9" cy="9" r="3"/><path d="M9 2v1.5M9 14.5V16M2 9h1.5M14.5 9H16M4 4l1 1M13 13l1 1M4 14l1-1M13 5l1-1"/>',
+ moon:'<path d="M14.5 11A6 6 0 0 1 7 3.5a6 6 0 1 0 7.5 7.5z"/>',
+ lock:'<rect x="4" y="8" width="10" height="7" rx="1.5"/><path d="M6 8V6a3 3 0 0 1 6 0v2"/>',
+ shield:'<path d="M9 2.5 14.5 4.5v4c0 3.3-2.3 5.8-5.5 7-3.2-1.2-5.5-3.7-5.5-7v-4z"/><path d="m6.5 9 1.8 1.8L11.8 7"/>'
+};
+const ic=(n,s=16)=>`<svg width="${s}" height="${s}" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${I[n]}</svg>`;
+const av=(p,lg)=>`<span class="av${lg?" lg":""}" style="--fc:var(--${p.fc});--ofc:var(--o${p.fc})">${esc(p.name.trim()[0]||"?")}</span>`;
+const accPill=id=>{const p=P(id);return p?`<span class="pill" style="gap:7px;padding-inline-start:3px">${av(p)}${esc(p.name)}</span>`:'<span class="pill">Removed</span>'};
+const proTag=()=>`<span class="tag pro">PRO</span>`;
+function toast(h){const el=document.createElement("div");el.className="toast";el.innerHTML=h;$("#toasts").appendChild(el);setTimeout(()=>el.remove(),3800)}
+const fmtLeft=ms=>{if(ms==null)return "no active window";const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60;return h?`${h}h ${String(m).padStart(2,"0")}m`:`${m}m ${String(x).padStart(2,"0")}s`};
+const meter=(l,v,r)=>`<div class="meter"><div class="r"><span>${l}</span><span class="num">${r}</span></div><div class="bar"><i class="${v>=S.settings.threshold?"hot":""}" style="width:${v}%"></i></div></div>`;
+
+/* ================= chrome / rail / nav ================= */
+function renderChrome(){
+  const c=$("#chrome");c.className="chrome "+S.os;const sp=S.scope!=="all"&&P(S.scope);
+  const ttl=`<span class="ttl">${sp?'<span class="dotc"></span>':""}Facet${sp?` · ${esc(sp.name)}`:""}</span>`;
+  c.innerHTML=S.os==="macos"?`<span class="lights"><i></i><i></i><i></i></span>${ttl}<span style="width:52px"></span>`:S.os==="windows"?`${ttl}<span class="wc"><i>&#x2013;</i><i>&#x25A2;</i><i>&#x2715;</i></span>`:`<span style="width:84px"></span>${ttl}<span class="gn"><i>&#x2013;</i><i>&#x25A2;</i><i>&#x2715;</i></span>`;
+  const sp2=S.scope!=="all"&&P(S.scope);$("#win").style.setProperty("--tint",sp2&&sp2.tint?`var(--${sp2.fc})`:"transparent");
+}
+function renderRail(){
+  $("#rail").innerHTML=`<button class="r all" data-scope="all" aria-pressed="${S.scope==="all"}" title="${t("all")}" aria-label="${t("all")}">${ic("grid",18)}</button><hr>`+
+   S.profiles.map(p=>`<button class="r" style="--fc:var(--${p.fc});--ofc:var(--o${p.fc})" data-scope="${p.id}" aria-pressed="${S.scope===p.id}" title="${esc(p.name)}" aria-label="${esc(p.name)}">${esc(p.name[0])}${p.running?'<i class="on"></i>':""}</button>`).join("")+
+   `<button class="r add" data-act="new" title="Add account" aria-label="Add account">${ic("plus",18)}</button>`;
+}
+const NAV=[["g1",["today","timeline","accounts"]],["g2",["costs","control","ecosystem"]],["g3",["sessions","folders","bridge"]],["g4",["health","settings"]]];
+function navExtra(k){
+  if(k==="accounts")return `<span class="cnt">${S.profiles.length}</span>`;
+  if(k==="costs"||k==="control")return "";
+  if(k==="ecosystem"){const h=S.eco.filter(e=>e.risk==="high"&&e.inst.length).length;return h?`<span class="cnt alert">${h}</span>`:""}
+  if(k==="bridge")return `<span class="tag">LAB</span>`;
+  if(k==="health")return S.doctorRan?"":`<span class="cnt alert">2</span>`;
+  if(k==="sessions")return `<span class="cnt">${S.sessions.length}</span>`;
+  return "";
+}
+function renderSide(){
+  const sp=S.scope!=="all"&&P(S.scope),run=S.profiles.filter(p=>p.running).length;
+  $("#side").innerHTML=`<div class="scope">${sp?av(sp,1):`<span class="av lg" style="--fc:var(--ink)">${ic("grid",18)}</span>`}<div style="min-width:0"><b>${sp?esc(sp.name):t("all")}</b><span>${sp?esc(sp.plan)+" · "+(sp.running?"running":"stopped"):t("allsub")}</span></div></div>`+
+   NAV.map(([g,items])=>`<div class="grp">${t(g)}</div>`+items.map(k=>`<button class="nav" data-nav="${k}" ${S.view===k?'aria-current="page"':""}>${ic(k)}<span>${t(k)}</span>${navExtra(k)}</button>`).join("")).join("")+
+   `<div class="sidefoot"><button class="palbtn" id="openPal">${ic("search",14)}<span>${t("search")}</span><span class="kbd">${OS[S.os].mod} K</span></button><div class="num">${run} of ${S.profiles.length} running · ${S.pro?"Pro preview":"Free"}</div></div>`;
+}
+
+/* ================= views ================= */
+const V={};
+V.today=()=>{
+  const d=new Date(),nowH=d.getHours()+d.getMinutes()/60,list=scoped();
+  const costToday=list.reduce((a,p)=>a+((S.day[p.id]||[]).filter(b=>b[0]<nowH).reduce((x,b)=>x+(Math.min(b[1],nowH)-b[0])*1.9,0)),0);
+  const waiting=S.live.filter(l=>l.state==="waiting"&&list.some(p=>p.id===l.p));
+  const hr=d.getHours()<12?"Good morning":d.getHours()<18?"Good afternoon":"Good evening";
+  const lanes=list.map(p=>`<div class="lab">${av(p)}<span>${esc(p.name)}</span></div><div class="track" style="--fc:var(--${p.fc})">${(S.day[p.id]||[]).filter(b=>b[0]<nowH).map(b=>{const e=Math.min(b[1],nowH);return `<div class="blk ${b[2]}" style="left:${b[0]/24*100}%;width:${Math.max(.6,(e-b[0])/24*100)}%" title="${esc(b[3])} · ${b[2]==="code"?"Claude Code":"Chat"}">${(e-b[0])>1?esc(b[3]):""}</div>`}).join("")}</div>`).join("");
+  return `<div class="vh"><div><h2>${hr}</h2><p>${list.length>1?"Here is what your accounts did today.":"Here is what "+esc(list[0].name)+" did today."}</p></div><span class="pill ex">sample data</span></div>
+  <div class="stats">
+    <div class="stat"><small>Running</small><b class="num">${list.filter(p=>p.running).length}<span class="muted" style="font-size:16px"> / ${list.length}</span></b><span>accounts open now</span></div>
+    <div class="stat"><small>Spent today</small><b class="num">$${costToday.toFixed(2)}</b><span>API-equivalent, Claude Code</span></div>
+    <div class="stat"><small>Needs you</small><b class="num">${waiting.length}</b><span>${waiting.length?"session waiting for an answer":"nothing waiting"}</span></div>
+    <div class="stat"><small>Next reset</small><b class="num" data-live="${(list.filter(p=>p.reset).sort((a,b)=>a.reset-b.reset)[0]||{}).reset||""}">${(()=>{const n=list.filter(p=>p.reset).sort((a,b)=>a.reset-b.reset)[0];return n?fmtLeft(n.reset-Date.now()):"–"})()}</b><span>${(()=>{const n=list.filter(p=>p.reset).sort((a,b)=>a.reset-b.reset)[0];return n?esc(n.name)+" session window":"no active windows"})()}</span></div>
+  </div>
+  <div class="sec"><div class="row"><h3 class="h3 grow">Activity</h3><button class="btn sm" data-act="opentl">Open timeline</button><div class="legend"><span><i style="--fc:var(--ink2)"></i>Claude Code</span><span><i style="--fc:var(--ink3);opacity:.6"></i>Chat (time only)</span></div></div>
+   <div class="tl"><div class="tlg">${lanes}<div></div><div style="position:relative"><div class="hours">${[0,3,6,9,12,15,18,21,24].map(h=>`<span>${String(h).padStart(2,"0")}</span>`).join("")}</div></div>
+    <div class="nowline" style="left:calc(120px + (100% - 120px) * ${nowH/24})"></div></div></div></div>
+  ${waiting.length?`<div class="sec"><h3>Waiting for you</h3><div class="card list">${waiting.map(l=>{const p=P(l.p);return `<div class="li" style="grid-template-columns:auto minmax(0,1fr) auto">${av(p)}<div><b style="font-weight:500">${esc(l.task)}</b><div class="hint mono">${esc(l.project)}</div></div><button class="btn sm pri" data-act="answer" data-l="${l.id}">Open in ${esc(p.name)}</button></div>`}).join("")}</div></div>`:""}
+  <div class="sec"><h3>Limits</h3><div class="card list">${list.map(p=>`<div class="li" style="grid-template-columns:minmax(140px,1fr) minmax(0,2fr) minmax(0,2fr);--fc:var(--${p.fc})"><div class="row" style="flex-wrap:nowrap;min-width:0">${av(p)}<div style="min-width:0"><b style="font-weight:500">${esc(p.name)}</b><div class="hint">${esc(p.plan)}</div></div></div>${meter("Session (5h)",p.session,`${p.session}% · <span data-live="${p.reset||""}">${p.reset?fmtLeft(p.reset-Date.now()):"idle"}</span>`)}${meter("Weekly",p.weekly,`${p.weekly}%`)}</div>`).join("")}</div>
+   <p class="hint">Chat in the desktop app has no usage telemetry, so its blocks show time only. Costs cover Claude Code.</p></div>`;
+};
+
+V.accounts=()=>`<div class="vh"><div><h2>${t("accounts")}</h2><p>Each account is fully separate: its own sign-in, chats, settings, terminal command and colour. Nothing is shared unless you share it.</p></div>
+   <div class="row"><button class="btn" data-act="quitall">Quit all</button><button class="btn pri" data-act="new">${ic("plus",14)} Add account</button></div></div>
+  <div class="cards">${scoped().map(acc).join("")}</div>`;
+function acc(p){const o=OS[S.os];
+  return `<article class="acc" style="--fc:var(--${p.fc})">
+   <div class="acch">${av(p,1)}<div class="who"><b>${esc(p.name)}</b><span>${esc(p.email)}</span></div><button class="btn ghost sm" data-menu="${p.id}" aria-label="More for ${esc(p.name)}">${ic("dots")}</button></div>
+   <div class="row" style="gap:6px"><span class="pill">${esc(p.plan)}</span>${p.running?'<span class="pill ok"><span class="d"></span>Running</span>':'<span class="pill">Stopped</span>'}${p.ex?'<span class="pill ex">example name</span>':""}</div>
+   ${meter("Session (5h)",p.session,`${p.session}% · <span data-live="${p.reset||""}">${p.reset?"resets in "+fmtLeft(p.reset-Date.now()):"not started"}</span>`)}
+   <div class="surf"><span class="${p.desktop?"":"off"}">${ic("accounts",12)} Desktop app</span><span class="${p.cli?"":"off"}">${ic("term",12)} <code class="mono">claude-${esc(slug(p))}</code></span><span>${ic("shield",12)} Clean environment</span></div>
+   <div class="set" style="padding:0;border:0"><div><b style="font-size:13px">Tint windows ${esc(p.name)}-coloured</b><span>So you never type into the wrong account</span></div><button class="tog" role="switch" aria-checked="${p.tint}" data-tint="${p.id}" aria-label="Tint ${esc(p.name)}"></button></div>
+   <div class="accf">${S.confirmRm===p.id?`<div class="confirm">Remove ${esc(p.name)} from Facet? Its data folder stays on disk.<button class="btn sm danger" data-act="rm" data-id="${p.id}">Remove</button><button class="btn sm" data-act="keep">Keep</button></div>`:
+     `${p.running?`<button class="btn sm pri" data-act="focus" data-id="${p.id}">Show window</button><button class="btn sm" data-act="quit" data-id="${p.id}">Quit</button>`:`<button class="btn sm pri" data-act="launch" data-id="${p.id}">${ic("play",12)} Launch</button>`}
+     <button class="btn sm" data-act="term" data-id="${p.id}" ${p.cli?"":"disabled"}>${ic("term",13)} Terminal</button><span class="grow"></span><span class="hint mono" title="${esc(o.dir(p))}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px">${esc(o.dir(p))}</span>`}</div>
+  </article>`}
+
+V.costs=()=>{
+  const O=S.obs,mult={"24h":.16,"7d":1,"30d":3.8}[O.range],fT=v=>{v*=mult;return v>=1?v.toFixed(1)+"M":Math.round(v*1000)+"K"},fC=v=>"$"+(v*mult).toFixed(2);
+  const tot=id=>(O.tree[id]||[]).reduce((a,pr)=>{pr.s.forEach(x=>{a.tok+=x.tok;a.cost+=x.cost});return a},{tok:0,cost:0});
+  const list=scoped(),all=list.reduce((a,p)=>{const x=tot(p.id);a.tok+=x.tok;a.cost+=x.cost;return a},{tok:0,cost:0});
+  if(S.scope!=="all"&&O.path[0]!==S.scope)O.path=[S.scope];
+  if(S.scope==="all"&&O.path.length&&!P(O.path[0]))O.path=[];
+  const [pa,pj,ss]=O.path;let crumbs=S.scope==="all"?[[t("all"),0]]:[],rows="",detail="";
+  const row=(l,sub,tok,cost,max,fc,go)=>`<${go?"button":"div"} class="drow" ${go?`data-drill='${esc(JSON.stringify(go))}'`:""} style="--fc:${fc}"><div style="min-width:0"><b style="display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(l)}</b><span class="hint">${sub}</span></div><div class="bar"><i style="width:${Math.max(2,tok/max*100)}%"></i></div><span class="num" style="text-align:end">${fT(tok)}</span><span class="num muted" style="text-align:end">${fC(cost)}</span></${go?"button":"div"}>`;
+  if(!pa){const tt=list.map(p=>({p,...tot(p.id)})),max=Math.max(...tt.map(x=>x.tok),.01);rows=tt.map(x=>row(x.p.name,`${(O.tree[x.p.id]||[]).length} projects · ${esc(x.p.plan)}`,x.tok,x.cost,max,`var(--${x.p.fc})`,[x.p.id])).join("")}
+  else{const p=P(pa);crumbs.push([p.name,1]);const projs=O.tree[pa]||[];
+    if(pj==null){const tt=projs.map((pr,i)=>({pr,i,tok:pr.s.reduce((a,x)=>a+x.tok,0),cost:pr.s.reduce((a,x)=>a+x.cost,0)})),max=Math.max(...tt.map(x=>x.tok),.01);rows=tt.length?tt.map(x=>row(x.pr.name,`${x.pr.s.length} sessions`,x.tok,x.cost,max,`var(--${p.fc})`,[pa,x.i])).join(""):`<div class="drow"><span class="muted">No Claude Code activity yet.</span></div>`}
+    else{const pr=projs[pj];crumbs.push([pr.name,2]);
+      if(ss==null){const max=Math.max(...pr.s.map(x=>x.tok),.01);rows=pr.s.map((x,i)=>row(x.t,esc(x.model),x.tok,x.cost,max,`var(--${p.fc})`,[pa,pj,i])).join("")}
+      else{const x=pr.s[ss];crumbs.push([x.t,3]);
+        const cats=[["File reads",.34],["Tool output",.27],["System, skills, CLAUDE.md",.18],["Claude’s replies",.12],["Subagents",.06],["Your messages",.03]];
+        rows=cats.map(c=>row(c[0],`${Math.round(c[1]*100)}% of this session`,x.tok*c[1],x.cost*c[1],.34,`var(--${p.fc})`,null)).join("");
+        const calls=[["Bash · npm test (full output)",.071],["Read · src/checkout/cart.ts",.034],["Grep · “retry” across the repo",.022],["Read · package-lock.json",.019],["Subagent · code reviewer",.016]];
+        detail=`<div class="sec"><div class="row"><h3 class="h3 grow">Heaviest single calls</h3>${proTag()}</div><div class="${S.pro?"":"locked"}">${S.pro?"":veil("Tool-call costs are part of Pro")}<div class="card list">${calls.map(c=>`<div class="li" style="grid-template-columns:minmax(0,1fr) auto auto"><span class="mono" style="overflow-wrap:anywhere">${esc(c[0])}</span><span class="num">${fT(x.tok*c[1])}</span><span class="num muted">${fC(x.cost*c[1])}</span></div>`).join("")}</div></div>
+          <div class="callout"><b>Tip</b><span>Test output is 7% of this session. A hook that summarises <code class="c">npm test</code> output would save about ${fT(x.tok*.06)} next time.</span></div></div>`}}}
+  const crumbHtml=crumbs.map((c,i)=>`${i?"<i>›</i>":""}<button data-crumb="${S.scope==="all"?c[1]:c[1]}">${esc(c[0])}</button>`).join("");
+  let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280,days=["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],hc=S.scope==="all"?"f5":P(S.scope).fc;
+  let heat='<span></span>'+Array.from({length:24},(_,h)=>`<span style="text-align:center">${h%6===0?h:""}</span>`).join("");
+  days.forEach((d,di)=>{heat+=`<span>${d}</span>`;for(let h=0;h<24;h++){const w=h>=9&&h<=18&&di<5,e=h>=20&&h<=23;let v=(w?.45:e?.35:.04)+rnd()*.5;if(h<7)v*=.15;if(di>=5)v*=w?.4:1.1;heat+=`<i style="--v:${Math.min(1,v).toFixed(2)};--fc:var(--${hc})" title="${d} ${h}:00"></i>`}});
+  const budgets=O.budgets.filter(b=>list.some(p=>p.id===b.p));
+  return `<div class="vh"><div><h2>${t("costs")}</h2><p>Every token on every layer: account, project, session, and the single call that cost the most.</p></div>
+    <div class="row"><span class="pill ex">sample data</span><div class="seg">${["24h","7d","30d"].map(r=>`<button data-range="${r}" aria-pressed="${O.range===r}">${r}</button>`).join("")}</div></div></div>
+  <div class="stats">
+   <div class="stat"><small>Tokens</small><b class="num">${fT(all.tok)}</b><span>de-duplicated, Claude Code</span></div>
+   <div class="stat"><small>API-equivalent</small><b class="num">${fC(all.cost)}</b><span>what this would cost on the API</span></div>
+   <div class="stat"><small>Cache hit rate</small><b class="num">91%</b><span>higher means cheaper turns</span></div>
+   <div class="stat"><small>Plan value</small><b class="num">${(all.cost*mult/(O.range==="30d"?340:O.range==="7d"?79:11)).toFixed(1)}×</b><span>usage value per plan dollar</span></div>
+  </div>
+  <div class="sec"><div class="row"><h3 class="h3 grow">Where the tokens went</h3>${S.scope==="all"?proTag()+'<span class="hint">cross-account view</span>':""}</div>
+   <div class="crumbs">${crumbHtml}</div>
+   <div class="${S.pro||S.scope!=="all"?"":"locked"}">${S.pro||S.scope!=="all"?"":veil("Comparing accounts side by side is part of Pro")}<div class="card">${rows}</div></div>${detail}</div>
+  <div class="sec"><div class="row"><h3 class="h3 grow">Client budgets</h3>${proTag()}<button class="btn sm" data-act="addbudget">${ic("plus",13)} Budget</button></div>
+   <div class="${S.pro?"":"locked"}">${S.pro?"":veil("Client budgets and invoice export are part of Pro")}<div class="card list">${budgets.length?budgets.map(b=>{const p=P(b.p),pct=Math.round(b.used/b.limit*100);return `<div class="li" style="grid-template-columns:auto minmax(0,1fr) auto;--fc:var(--${p.fc})">${av(p)}<div style="display:grid;gap:6px;min-width:0"><div class="row"><b style="font-weight:500">${esc(b.client)}</b><span class="hint mono">${esc(b.proj)}</span></div><div class="bar"><i class="${pct>=S.settings.threshold?"hot":""}" style="width:${pct}%"></i></div><span class="hint num">$${b.used.toFixed(2)} of $${b.limit} this month · ${pct}%</span></div><button class="btn sm" data-act="invoice" data-c="${esc(b.client)}">Export for invoice</button></div>`}).join(""):`<div class="li"><span class="muted">No budgets for this account yet.</span></div>`}</div></div></div>
+  <div class="two sec">
+   <div class="card" style="padding:16px;display:grid;gap:10px"><b style="font-weight:500">Token types</b><div class="split"><i style="width:84%;background:var(--f5)"></i><i style="width:8%;background:var(--f1)"></i><i style="width:4.5%;background:var(--f2)"></i><i style="width:3.5%;background:var(--f4)"></i></div>
+    <div class="legend"><span><i style="--fc:var(--f5)"></i>Cache read 84%</span><span><i style="--fc:var(--f1)"></i>Cache write 8%</span><span><i style="--fc:var(--f2)"></i>Input 4.5%</span><span><i style="--fc:var(--f4)"></i>Output 3.5%</span></div>
+    <p class="hint" style="margin:0">Counted once. Some tools count cached context twice and report 2–3× too many tokens.</p></div>
+   <div class="card" style="padding:16px;display:grid;gap:10px"><b style="font-weight:500">Models</b><div class="split"><i style="width:68%;background:var(--f2)"></i><i style="width:27%;background:var(--f1)"></i><i style="width:5%;background:var(--f6)"></i></div>
+    <div class="legend"><span><i style="--fc:var(--f2)"></i>Opus 5.5 · 68%</span><span><i style="--fc:var(--f1)"></i>Sonnet 5.5 · 27%</span><span><i style="--fc:var(--f6)"></i>Haiku 4.5 · 5%</span></div>
+    <p class="hint" style="margin:0">Your 3 lightest sessions would have used about 40% fewer tokens on Sonnet.</p></div>
+  </div>
+  <div class="sec"><h3>When you work</h3><div class="card" style="padding:14px;overflow-x:auto"><div class="heat">${heat}</div></div></div>
+  <p class="hint" style="margin-top:14px">Source: Claude Code’s official OpenTelemetry export from each account, received by Facet on localhost and stored in a local database. Nothing leaves your computer.</p>`;
+};
+const veil=msg=>`<div class="veil"><div>${ic("lock",20)}<b>${msg}</b><span class="hint">Free covers one account at a time.</span><button class="btn sm pri" data-act="gopro">Preview Pro</button></div></div>`;
+
+const CTL0=()=>({model:"Opus 5.5",effort:"high",fast:false,mode:"default",style:"Default",
+  allow:["Bash(npm test:*)","Bash(git status)","Read(src/**)"],deny:["Read(.env*)","Bash(rm -rf:*)","Bash(git push --force:*)"],
+  hooks:[{ev:"PostToolUse",what:"Format edited files with prettier",on:true},{ev:"PreToolUse",what:"Block edits outside the project folder",on:true},{ev:"Stop",what:"Desktop notification when Claude finishes",on:true},{ev:"SessionStart",what:"Load today’s tasks from TODO.md",on:false}],
+  env:[{k:"ANTHROPIC_LOG",v:"info",secret:false},{k:"GITHUB_TOKEN",v:"ghp_••••••••3f9a",secret:true}],dirty:false});
+V.control=()=>{
+  const pid=S.scope!=="all"?S.scope:(S.ctlP&&P(S.ctlP)?S.ctlP:S.profiles[0].id);S.ctlP=pid;
+  const c=S.ctl[pid]||(S.ctl[pid]=CTL0()),p=P(pid);
+  const modes=[["default","Ask before risky actions"],["acceptEdits","Accept file edits automatically"],["plan","Plan only, no changes"],["auto","Auto, a classifier decides"],["bypassPermissions","Never ask (sandbox only)"]];
+  const chip=(r,l)=>`<span class="pill mono" style="gap:4px">${esc(r)}<button class="btn ghost sm" style="padding:0 4px" data-rmrule="${l}" data-r="${esc(r)}" aria-label="Remove ${esc(r)}">✕</button></span>`;
+  const json={model:c.model.toLowerCase().replace(/ /g,"-"),effortLevel:c.effort,outputStyle:c.style,permissions:{defaultMode:c.mode,allow:c.allow,deny:c.deny},hooks:Object.fromEntries(c.hooks.filter(h=>h.on).map(h=>[h.ev,[{description:h.what}]])),env:Object.fromEntries(c.env.map(e=>[e.k,e.secret?"<from system keychain>":e.v]))};
+  return `<div class="vh"><div><h2>${t("control")}</h2><p>Everything Claude Code can be told, for each account: model, thinking effort, permissions, hooks and environment. You see the exact file change before anything is saved.</p></div>
+   <div class="row"><button class="btn" data-act="copyto">Copy to other accounts${S.pro?"":" · Pro"}</button><button class="btn pri" data-act="apply" ${c.dirty?"":"disabled"}>${c.dirty?"Review and save":"No changes"}</button></div></div>
+  ${S.scope==="all"?`<div class="row" style="gap:6px;margin-bottom:14px">${S.profiles.map(x=>`<button class="pill" data-ctlp="${x.id}" style="gap:7px;padding-inline-start:3px;${x.id===pid?"border-color:var(--ink);color:var(--ink)":""}">${av(x)}${esc(x.name)}${S.ctl[x.id]&&S.ctl[x.id].dirty?" •":""}</button>`).join("")}</div>`:""}
+  <div class="callout" style="margin-bottom:16px"><b style="font-weight:500">Start from a preset</b>${[["strict","Strict client work"],["power","Power user"],["learn","Learning"]].map(([k,l])=>`<button class="btn sm" data-tpl="${k}">${l}</button>`).join("")}<span class="hint">You still review before saving.</span></div>
+  <div class="two" style="align-items:start">
+   <div class="card">
+    <div class="set"><div><b>Default model</b><span>Used when a session starts</span></div><select id="cModel" class="sel" aria-label="Default model">${["Fable 5.1","Opus 5.5","Sonnet 5.5","Haiku 4.5"].map(m=>`<option ${m===c.model?"selected":""}>${m}</option>`).join("")}</select></div>
+    <div class="set"><div><b>Thinking effort</b><span>Higher thinks longer and uses more tokens</span></div><div class="seg">${["low","medium","high","max"].map(e=>`<button data-eff="${e}" aria-pressed="${c.effort===e}">${e}</button>`).join("")}</div></div>
+    <div class="set"><div><b>Fast mode</b><span>Faster replies from the same model</span></div><button class="tog" role="switch" aria-checked="${c.fast}" data-cflag="fast" aria-label="Fast mode"></button></div>
+    <div class="set"><div><b>Output style</b><span>How Claude explains its work</span></div><select id="cStyle" class="sel" aria-label="Output style">${["Default","Explanatory","Learning","Concise"].map(m=>`<option ${m===c.style?"selected":""}>${m}</option>`).join("")}</select></div>
+   </div>
+   <div class="card" style="padding:16px;display:grid;gap:10px">
+    <b style="font-weight:500">Permissions</b>
+    <select class="inp" id="cMode" aria-label="Permission mode">${modes.map(([v,l])=>`<option value="${v}" ${v===c.mode?"selected":""}>${l}</option>`).join("")}</select>
+    ${c.mode==="bypassPermissions"?'<div class="callout bad">Claude will run any command without asking. Only use this in a throwaway container.</div>':""}
+    <span class="hint">Always allowed</span><div class="row" style="gap:6px">${c.allow.map(r=>chip(r,"allow")).join("")}</div>
+    <span class="hint">Never allowed</span><div class="row" style="gap:6px">${c.deny.map(r=>chip(r,"deny")).join("")}</div>
+    <div class="row"><input class="inp mono grow" style="flex:1 1 200px" id="ruleIn" placeholder="e.g. Bash(docker compose up:*)" aria-label="New rule"><button class="btn sm" data-act="addallow">Allow</button><button class="btn sm danger" data-act="adddeny">Deny</button></div>
+   </div>
+  </div>
+  <div class="two sec" style="align-items:start">
+   <div><h3 class="h3" style="margin-bottom:10px">Hooks</h3><div class="card">${c.hooks.map((h,i)=>`<div class="set"><div><b>${esc(h.what)}</b><span class="mono">${h.ev}</span></div><button class="tog" role="switch" aria-checked="${h.on}" data-hook="${i}" aria-label="${esc(h.what)}"></button></div>`).join("")}</div></div>
+   <div><h3 class="h3" style="margin-bottom:10px">Environment</h3><div class="card">${c.env.map(e=>`<div class="set"><div><b class="mono">${esc(e.k)}</b><span class="mono">${esc(e.v)}</span></div>${e.secret?'<span class="pill ok">In system keychain</span>':'<span class="pill">Plain</span>'}</div>`).join("")}
+    <div class="set"><div><b>Blocked from every account</b><span class="mono">ANTHROPIC_API_KEY · ANTHROPIC_AUTH_TOKEN · CLAUDE_CODE_OAUTH_TOKEN</span></div><span class="pill ok">${ic("shield",12)} Scrubbed</span></div></div>
+    <p class="hint">These variables override sign-in, which would quietly run every account as one. Facet removes them from every process it starts.</p></div>
+  </div>
+  <div class="sec"><h3>What will be written</h3><div class="tw" style="padding:14px 16px"><pre class="mono" style="margin:0;white-space:pre;font-size:11.5px;line-height:1.65">${esc(OS[S.os].cli(p))}/settings.json\n\n${esc(JSON.stringify(json,null,2))}</pre></div>
+   <p class="hint">Facet validates the file against Claude Code’s schema, saves a backup first and writes atomically. Managed or enterprise policy files are never touched.</p></div>`;
+};
+
+V.ecosystem=()=>{
+  const q=S.ecoQ.toLowerCase(),list=S.eco.filter(e=>(S.ecoF==="all"||e.kind===S.ecoF)&&(!q||(e.name+" "+e.desc).toLowerCase().includes(q)));
+  const rk=e=>{const m={low:["Low","var(--ok)","33%"],medium:["Medium","var(--warn)","66%"],high:["High","var(--bad)","100%"]}[e.risk];return `<span class="risk" style="color:${m[1]}"><i style="--c:${m[1]};--w:${m[2]}"></i>${m[0]} risk</span>`};
+  const disc=`<div class="row" style="margin-bottom:14px"><input class="inp" style="flex:1 1 220px" id="ecoQ" placeholder="Search skills, plugins, MCP servers" value="${esc(S.ecoQ)}" aria-label="Search ecosystem"><div class="seg">${["all","Skill pack","Plugin","MCP server"].map(f=>`<button data-ecof="${f}" aria-pressed="${S.ecoF===f}">${f==="all"?"All":f+"s"}</button>`).join("")}</div></div>
+   <div class="eco">${list.map(e=>`<button class="pack" data-eco="${e.id}"><div class="ph"><span class="ic">${esc(e.name[0])}</span><div style="min-width:0"><b>${esc(e.name)}</b><span class="hint">${esc(e.kind)} · ${esc(e.by)}</span></div></div><p>${esc(e.desc)}</p><div class="row" style="justify-content:space-between">${rk(e)}<span class="hint">${e.inst.length?`In ${e.inst.length} account${e.inst.length>1?"s":""}`:"Not installed"}</span></div></button>`).join("")||'<p class="muted">Nothing matches.</p>'}</div>`;
+  const inst=`<div class="tw"><table><thead><tr><th>Installed</th><th>Risk</th>${S.profiles.map(p=>`<th class="c">${esc(p.name)}</th>`).join("")}</tr></thead><tbody>${S.eco.filter(e=>e.inst.length).map(e=>`<tr><td><b style="font-weight:500">${esc(e.name)}</b><div class="hint">${esc(e.kind)}</div></td><td>${rk(e)}</td>${S.profiles.map(p=>`<td class="c"><button class="tog" role="switch" aria-checked="${e.inst.includes(p.id)}" data-einst="${e.id}" data-p="${p.id}" aria-label="${esc(e.name)} in ${esc(p.name)}" ${S.walls[p.id]&&false?"disabled":""}></button></td>`).join("")}</tr>`).join("")}</tbody></table></div>
+   <p class="hint" style="margin-top:10px">Turning one on copies only that item into the account and backs up the account’s config first. Desktop MCP changes apply the next time that account starts.</p>`;
+  return `<div class="vh"><div><h2>${t("ecosystem")}</h2><p>Skills, plugins and MCP servers can run code on your computer. Facet shows exactly what each one adds before it reaches any account.</p></div>
+   <div class="seg"><button data-ecotab="discover" aria-pressed="${S.ecoTab==="discover"}">Discover</button><button data-ecotab="installed" aria-pressed="${S.ecoTab==="installed"}">Installed</button></div></div>
+   ${S.ecoTab==="discover"?disc:inst}`;
+};
+function openEco(id){
+  const e=S.eco.find(x=>x.id===id);if(!e)return;const sel=new Set(e.inst.length?e.inst:[S.scope!=="all"?S.scope:"personal"]);
+  const dr=document.createElement("div");dr.className="drawer";
+  const add=(k,cls,html)=>`<div class="add"><span class="k ${cls}">${k}</span><div>${html}</div></div>`;
+  const draw=()=>{const blocked=[...sel].filter(id=>S.walls[id]&&e.risk==="high");
+   dr.innerHTML=`<div class="panel" role="dialog" aria-label="Safety preview for ${esc(e.name)}">
+   <header><span class="pack" style="padding:0;border:0;background:none"><span class="ic" style="width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--sunk);font-family:var(--fd);font-weight:650">${esc(e.name[0])}</span></span><div class="grow" style="min-width:0"><b style="display:block">${esc(e.name)}</b><span class="hint">${esc(e.kind)} · ${esc(e.by)} · ${esc(e.pop)} installs</span></div><button class="btn ghost sm" data-x aria-label="Close">✕</button></header>
+   <div class="body">
+    <div class="row"><b class="grow">Safety preview</b><span class="pill ex">illustrative</span></div>
+    <div class="callout ${e.risk==="high"?"bad":e.risk==="medium"?"warn":""}"><b>${e.risk[0].toUpperCase()+e.risk.slice(1)} risk</b><span>${e.why.map(esc).join(". ")}.</span> ${S.pro?"":'<span class="tag pro">PRO</span><span class="hint">risk score</span>'}</div>
+    <div class="adds">
+     ${Object.entries(e.adds).map(([k,v])=>add(v,"",`Adds <b>${v} ${k}</b>`)).join("")}
+     ${e.hooks.map(h=>add("!","w",`Hook on <b class="mono">${h[0]}</b>: <code class="c">${esc(h[1])}</code><div class="hint">${esc(h[2])}</div>`)).join("")}
+     ${e.perms.map(x=>add("✓","",`Asks permission for <code class="c">${esc(x)}</code>`)).join("")}
+     ${e.env.map(x=>add("$","w",`Reads environment variable <code class="c">${esc(x)}</code>`)).join("")}
+     ${e.net.map(x=>add("↗",x.startsWith("Any")?"b":"w",`Network: ${esc(x)}`)).join("")}
+     ${e.run?add("▶",/latest|-y/.test(e.run)?"b":"",`Starts with <code class="c">${esc(e.run)}</code>${/latest/.test(e.run)?'<div class="hint">Unpinned: a new version can change what runs without you noticing.</div>':""}`):""}
+     ${e.files.map(x=>add("◧","",`Writes to <code class="c">${esc(x)}</code>`)).join("")}
+    </div>
+    <div class="field"><label>Install into</label><div class="checks">${S.profiles.map(p=>`<label class="chk2"><input type="checkbox" data-sel="${p.id}" ${sel.has(p.id)?"checked":""}>${av(p)} ${esc(p.name)} ${S.walls[p.id]?'<span class="pill">walled</span>':""}</label>`).join("")}</div></div>
+    ${blocked.length?`<div class="callout bad">High-risk items can’t go into walled accounts (${blocked.map(id=>esc(P(id).name)).join(", ")}).</div>`:""}
+   </div>
+   <footer><span class="hint grow">A backup is made before anything changes.</span><button class="btn" data-x>Cancel</button><button class="btn pri" data-install ${sel.size&&!blocked.length?"":"disabled"}>${e.inst.length?"Update accounts":"Install"}</button></footer></div>`};
+  dr.addEventListener("click",ev=>{
+    if(ev.target===dr||ev.target.closest("[data-x]")){dr.remove();return}
+    const cb=ev.target.closest("[data-sel]");if(cb){cb.checked?sel.add(cb.dataset.sel):sel.delete(cb.dataset.sel);draw();return}
+    if(ev.target.closest("[data-install]")){e.inst=[...sel];dr.remove();toast(`${esc(e.name)} is now in ${e.inst.map(id=>esc(P(id).name)).join(", ")} · backups saved`);render()}
+  });
+  dr.addEventListener("keydown",ev=>{if(ev.key==="Escape")dr.remove()});
+  $("#win").appendChild(dr);draw();dr.querySelector("[data-x]").focus();
+}
+
+V.sessions=()=>{const q=S.sessQ.toLowerCase(),list=S.sessions.filter(s=>scoped().some(p=>p.id===s.p)&&(!q||(s.title+" "+s.project).toLowerCase().includes(q)));
+  return `<div class="vh"><div><h2>${t("sessions")}</h2><p>One search across the Claude Code history of every account. Resume a session in the account it belongs to.</p></div></div>
+  <input class="inp" id="sessQ" placeholder="Search titles and folders" value="${esc(S.sessQ)}" aria-label="Search sessions" style="margin-bottom:14px">
+  <div class="card list">${list.length?list.map(s=>{const p=P(s.p);return `<div class="li" style="grid-template-columns:auto minmax(0,1fr) auto">${av(p)}<div style="min-width:0"><b style="font-weight:500">${esc(s.title)}</b><div class="hint"><span class="mono">${esc(s.project)}</span> · ${esc(s.t)} · ${s.msgs} messages</div></div><button class="btn sm" data-resume="${s.id}">Resume</button></div>`}).join(""):`<div class="li"><span class="muted">No sessions match.</span></div>`}</div>
+  <p class="hint" style="margin-top:10px">Claude Code keeps transcripts for 30 days by default. Facet indexes titles and folders only, never message content.</p>`};
+
+V.folders=()=>`<div class="vh"><div><h2>${t("folders")}</h2><p>Type <code class="c">claude</code> anywhere and Facet picks the account from the folder you are in, the way Git picks an identity per repository.</p></div><button class="btn" data-act="addrule">${ic("plus",14)} Add rule</button></div>
+  <div class="tw"><table><thead><tr><th>Folder pattern</th><th>Account</th><th class="c">Order</th></tr></thead><tbody>${S.folders.map((r,i)=>`<tr><td><code class="c">${esc(r.glob)}</code>${r.glob==="**"?' <span class="hint">everything else</span>':""}</td><td>${accPill(r.to)}</td><td class="c num muted">${i+1}</td></tr>`).join("")}</tbody></table></div>
+  <div class="sec"><h3>Test a folder</h3><input class="inp mono" id="pathIn" value="~/clients/bakery-site/src" aria-label="Folder path"><div class="callout" id="pathOut"></div></div>
+  <p class="hint" style="margin-top:12px">A tiny <code class="c">claude</code> shim sits ahead of the real one on your PATH, sets that account’s <code class="c">CLAUDE_CONFIG_DIR</code> and hands over to the unmodified Claude Code.</p>`;
+function updatePath(){const out=$("#pathOut");if(!out)return;const v=$("#pathIn").value.trim().replace(/\\/g,"/").replace(/\/+$/,"");let hit=null;
+  for(const r of S.folders){const rx=new RegExp("^"+r.glob.replace(/[.+^${}()|[\]]/g,"\\$&").replace(/\*\*/g,"\u0000").replace(/\*/g,"[^/]*").replace(/\u0000/g,".*").replace(/\/\.\*$/,"(/.*)?")+"$");if(rx.test(v)){hit=r;break}}
+  const p=hit&&P(hit.to);out.innerHTML=p?`Runs as ${accPill(p.id)} <span class="muted">via</span> <code class="c">${esc(hit.glob)}</code><span style="flex-basis:100%"></span><code class="c">CLAUDE_CONFIG_DIR=${esc(OS[S.os].cli(p))} claude</code>`:"No rule matches. Add a catch-all rule (**)."}
+
+V.bridge=()=>{const L=id=>S.live.find(l=>l.id===id),tg=l=>{const p=P(l.p);return `<span class="pill" style="gap:6px;padding-inline-start:3px">${av(p)}${esc(p.name)}</span>`};
+  const opt=sel=>S.live.map(l=>`<option value="${l.id}" ${sel===l.id?"selected":""}>${esc(P(l.p).name)} · ${esc(l.project)}</option>`).join("");
+  const test=S.bridgeTest;
+  return `<div class="vh"><div><h2>${t("bridge")} <span class="tag" style="vertical-align:middle">LAB</span></h2><p>See every running Claude Code session across your accounts, and pass a question between them when you choose to.</p></div></div>
+  <div class="callout" style="margin-bottom:16px">${ic("shield",16)}<span class="grow">Claude Code already lets sessions in <b>one</b> account message each other. Whether that reaches sessions in other accounts is untested, so the Bridge stays experimental and always needs your click.</span>
+   <button class="btn sm" data-act="btest">${test?"Run again":"Run the test"}</button></div>
+  ${test?`<div class="callout ${test==="ok"?"":"warn"}" style="margin-bottom:16px">${test==="run"?'<span class="st working"><i></i></span> Starting two Claude Code sessions under different accounts and checking /peers…':test==="ok"?"Simulated result: sessions in different accounts can see each other natively.":"Simulated result: sessions only see their own account, so Facet would use a human-triggered handoff file. The real test is step 1 in the Blueprint."}</div>`:""}
+  <div class="card">${S.live.map(l=>{const p=P(l.p);if(!p)return "";return `<div class="li" style="grid-template-columns:auto minmax(0,1fr) auto auto">${av(p)}<div style="min-width:0"><b style="font-weight:500">${esc(l.task)}</b><div class="hint mono">${esc(l.project)}</div></div><span class="st ${l.state}"><i></i>${l.state==="working"?"Working":l.state==="waiting"?"Needs you":"Idle"}</span>${S.walls[l.p]?'<span class="pill">Walled</span>':`<button class="btn sm" data-msgfrom="${l.id}">Message</button>`}</div>`}).join("")}</div>
+  <div class="two sec" style="align-items:start">
+   <div class="card" style="padding:16px;display:grid;gap:12px"><b style="font-weight:500">Pass a question</b>
+    <div class="row"><div class="field" style="flex:1 1 160px"><label for="bFrom">From</label><select class="inp" id="bFrom">${opt(S.br.from)}</select></div><div class="field" style="flex:1 1 160px"><label for="bTo">To</label><select class="inp" id="bTo">${opt(S.br.to)}</select></div></div>
+    <textarea class="inp" id="bText">How did you set up retries for the payment API?</textarea>
+    <div class="row" style="justify-content:flex-end"><button class="btn pri" data-act="send" ${S.br.from===S.br.to?"disabled":""}>Send</button></div></div>
+   <div style="display:grid;gap:10px"><b style="font-size:13.5px">Recent</b>${S.relays.map(r=>{const a=L(r.from),b=L(r.to);return `<div class="msg"><div class="meta">${a?tg(a):""}→${b?tg(b):""}<span>${esc(r.t)}</span></div><div>${esc(r.text)}</div>${r.reply?`<div class="reply">${esc(r.reply)}</div>`:""}</div>`}).join("")}</div>
+  </div>
+  <div class="sec"><h3>Walls</h3><div class="card">${S.profiles.map(p=>`<div class="set"><div class="row" style="flex-wrap:nowrap">${av(p)}<div><b>${esc(p.name)}</b><span>${S.walls[p.id]?"Isolated: nothing goes in or out":"Can exchange messages when you send them"}</span></div></div><button class="tog" role="switch" aria-checked="${!!S.walls[p.id]}" data-wall="${p.id}" aria-label="Wall off ${esc(p.name)}"></button></div>`).join("")}</div></div>`};
+
+const CHECKS=()=>[
+ {s:"ok",t:"Claude Desktop is up to date",b:S.os==="linux"?"3.6556.2 from Anthropic’s apt repository. Updates arrive with system updates.":S.os==="windows"?"Installed from the Microsoft Store (MSIX). Facet launches it through the Store alias, never a copied .exe.":"Latest version. Facet never re-signs or copies Claude.app."},
+ {s:"warn",t:"An override variable is set in your shell",b:"ANTHROPIC_API_KEY is exported in ~/.bashrc. Facet strips it from every account it starts, but terminals you open yourself still use it.",fix:"Show me"},
+ {s:"ok",t:"Every account is easy to tell apart",b:OS[S.os].ident},
+ {s:"ok",t:"Sign-ins are isolated",b:"Each account signs in through Anthropic’s own flow. Facet never reads or copies tokens, cookies or keychain items."},
+ {s:"bad",t:"An installed MCP server is high risk",b:"Page Fetcher would download its latest version on every start.",fix:"Review"},
+ {s:"ok",t:"Telemetry stays local",b:"OpenTelemetry from every account goes to 127.0.0.1:4318 only."}
+];
+V.health=()=>`<div class="vh"><div><h2>${t("health")}</h2><p>Checks the things that quietly break a multi-account setup, and fixes most of them in one click.</p></div><button class="btn pri" data-act="rundoc">Run checks</button></div>
+  <div class="card" id="docList">${CHECKS().map((c,i)=>`<div class="chk"><span class="i ${S.doctorRan?c.s:""}">${S.doctorRan?(c.s==="ok"?"✓":"!"):""}</span><div><b>${esc(c.t)}</b><p>${S.doctorRan?esc(c.b):"Not checked yet"}</p></div>${S.doctorRan&&c.fix?`<button class="btn sm" data-act="docfix" data-ci="${i}">${c.fix}</button>`:"<span></span>"}</div>`).join("")}</div>
+  <div class="sec"><div class="row"><h3 class="h3 grow">Backups</h3><button class="btn sm" data-act="backup">Back up now</button></div><div class="card list" id="bk">
+   <div class="li" style="grid-template-columns:minmax(0,1fr) auto auto"><div><b style="font-weight:500">Today 09:00</b><div class="hint">Settings, MCP config and kit links for 4 accounts. No sign-in data.</div></div><span class="num muted">2.1 MB</span><span class="pill ok">Encrypted</span></div>
+   <div class="li" style="grid-template-columns:minmax(0,1fr) auto auto"><div><b style="font-weight:500">Before installing Test Pilot</b><div class="hint">Work account config</div></div><span class="num muted">84 KB</span><span class="pill ok">Encrypted</span></div></div></div>`;
+
+V.settings=()=>{const st=S.settings,row=(k,b,s)=>`<div class="set"><div><b>${b}</b><span>${s}</span></div><button class="tog" role="switch" aria-checked="${st[k]}" data-set="${k}" aria-label="${b}"></button></div>`;
+ return `<div class="vh"><div><h2>${t("settings")}</h2><p>Facet sits in the tray and stays out of the way.</p></div></div>
+  <div class="card">
+   <div class="set"><div><b>Plan</b><span>Preview what Free and Pro include</span></div><div class="seg"><button data-plan="free" aria-pressed="${!S.pro}">Free</button><button data-plan="pro" aria-pressed="${S.pro}">Pro</button></div></div>
+   ${row("tray","Tray / menu bar icon","Open any account from the tray")}
+   ${row("login","Start at login","Keeps telemetry collection running")}
+   ${row("notify","Notifications","Limit and budget warnings, waiting sessions, new Claude versions")}
+   ${row("weekly","Weekly report","Monday summary of tokens and cost per account")}
+   <div class="set"><div><b>Quick switcher shortcut</b><span>${S.os==="linux"?"On GNOME Wayland, bind <span class='mono'>facet open --switcher</span> to a custom shortcut":`<span class="kbd">${OS[S.os].mod}</span> <span class="kbd">Alt</span> <span class="kbd">Space</span> from anywhere`}</span></div><button class="btn sm" data-act="hotkey">Set up</button></div>
+   <div class="set"><div><b>Language</b><span>English, العربية (right to left)</span></div><select id="lang" class="sel" aria-label="Language"><option value="en" ${S.lang==="en"?"selected":""}>English</option><option value="ar" ${S.lang==="ar"?"selected":""}>العربية</option></select></div>
+  </div>
+  <div class="sec"><h3>How Facet stays on the right side of Claude’s rules</h3><div class="card">${[
+   ["Launches the official, unmodified Claude apps","Different folders, nothing patched or repackaged"],
+   ["Never touches sign-in data","No tokens, cookies or keychain items are read, copied, backed up or synced"],
+   ["Makes no calls to Anthropic","Facet itself never talks to Anthropic’s servers"],
+   ["No automatic account rotation","Accounts are for separating work, not for stretching usage limits"],
+   ["No clicking or typing in Claude for you","The Bridge only uses Claude Code’s documented interfaces, after your click"],
+   ["Your accounts only","Every account in Facet must belong to you"]].map(([a,b])=>`<div class="set"><div><b>${a}</b><span>${b}</span></div><span class="pill ok">${ic("shield",12)} Built in</span></div>`).join("")}</div></div>`};
+
+/* ================= timeline (Time Machine) ================= */
+const TL={t0:null,t1:null,sel:null,hover:null,play:false,speed:60,ph:null,lb:"conv",filter:"all",raf:0};
+const DAY0=(()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()})();
+let EV=null,SESS=null,TASKS=null;
+function genEvents(){
+  let seed=42;const r=()=>(seed=(seed*16807)%2147483647)/2147483647,ri=(a,b)=>a+r()*(b-a);
+  const nowT=Date.now(),ev=[],sess=[],tasks=[];
+  const prompts=["Fix the failing checkout test","Why is this query slow?","Add retry with backoff","Refactor the cart service","Write tests for the parser","Explain this stack trace","Update the README","Review my diff","Rename the config keys","Speed up the build"];
+  const tools=[["Read","src/checkout/cart.ts"],["Bash","npm test"],["Edit","src/lib/retry.ts"],["Grep","\"timeout\" in src/"],["Glob","**/*.test.ts"],["Read","package-lock.json"],["Task","code-reviewer subagent"],["mcp__github","list pull requests"],["WebFetch","docs.example.com/api"],["Bash","git diff"]];
+  S.profiles.forEach(p=>{(S.day[p.id]||[]).forEach((b,bi)=>{
+    const s=DAY0+b[0]*36e5,e=Math.min(DAY0+b[1]*36e5,nowT);if(s>=nowT)return;
+    const sid=p.id+"-"+bi,model=p.id==="work"?"Opus 5.5":r()<.5?"Sonnet 5.5":"Opus 5.5",rate=model==="Opus 5.5"?1.7:1;
+    const se={sid,p:p.id,title:b[3],start:s,end:e,cost:0,kind:b[2],tasks:0};sess.push(se);
+    if(b[2]==="chat"){ev.push({ts:s,end:e,p:p.id,sid,type:"chat",title:b[3],cost:0});return}
+    let t=s+ri(5e3,60e3);
+    while(t<e){
+      const tid=sid+"-t"+tasks.length,title=prompts[Math.floor(r()*prompts.length)],tk={id:tid,sid,p:p.id,title,start:t,end:t,cost:0,calls:0,tokens:0};tasks.push(tk);se.tasks++;
+      ev.push({ts:t,p:p.id,sid,task:tid,type:"prompt",title,cost:0,chars:Math.round(ri(40,900))});
+      let tt=t+ri(1500,5000),carry=0;const n=Math.round(ri(3,15));
+      for(let i=0;i<n&&tt<e;i++){
+        const tin=Math.round(ri(800,5000)+carry),tout=Math.round(ri(150,2600)),tcr=Math.round(ri(25e3,170e3)),tcw=Math.round(r()<.3?ri(2e3,18e3):0);
+        const cost=(tin*3+tout*15+tcr*.3+tcw*3.75)/1e6*rate,dur=Math.round(ri(1800,16000));
+        ev.push({ts:tt,p:p.id,sid,task:tid,type:"api",model,tin,tout,tcr,tcw,cost,dur,title});tk.cost+=cost;tk.calls++;tk.tokens+=tin+tout+tcr+tcw;se.cost+=cost;
+        tt+=dur;carry=0;
+        if(r()<.72&&tt<e){const tl=tools[Math.floor(r()*tools.length)],big=tl[1]==="npm test"&&r()<.6,td=Math.round(big?ri(8e3,45e3):ri(40,4000)),out=Math.round(big?ri(18e3,52e3):ri(200,6000));
+          ev.push({ts:tt,p:p.id,sid,task:tid,type:"tool",tool:tl[0],target:tl[1],dur:td,out,ok:r()>.08,title,cost:0});carry=out;tt+=td}
+        tt+=ri(400,3000);
+      }
+      tk.end=Math.min(tt,e);t=tt+ri(15e3,240e3);
+    }
+  })});
+  ev.sort((a,b)=>a.ts-b.ts);EV=ev;SESS=sess;TASKS=tasks;
+}
+const fmtT=(ms,sec)=>{const d=new Date(ms);const p=n=>String(n).padStart(2,"0");return `${p(d.getHours())}:${p(d.getMinutes())}${sec?":"+p(d.getSeconds()):""}`};
+const fmtMs=ms=>{const d=new Date(ms);return fmtT(ms,true)+"."+String(d.getMilliseconds()).padStart(3,"0")};
+const fmtDur=ms=>ms<1000?ms+" ms":ms<60e3?(ms/1000).toFixed(1)+" s":ms<36e5?Math.floor(ms/60e3)+"m "+Math.round(ms%60e3/1000)+"s":Math.floor(ms/36e5)+"h "+Math.round(ms%36e5/60e3)+"m";
+const fmtSpan=ms=>ms>=36e5?(ms/36e5).toFixed(ms>=72e5?0:1)+" h":ms>=60e3?Math.round(ms/60e3)+" min":Math.round(ms/1000)+" s";
+const money=v=>v>=1?"$"+v.toFixed(2):v>=.01?"$"+v.toFixed(3):"$"+v.toFixed(4);
+
+V.timeline=()=>{
+  if(!EV)genEvents();const nowT=Date.now();
+  if(TL.t0==null){TL.t0=DAY0+6*36e5;TL.t1=nowT}
+  return `<div class="vh"><div><h2>Timeline</h2><p>Every prompt, model call and tool run across your accounts, down to the second. Scroll to zoom, drag to move, click anything to inspect it.</p></div><span class="pill ex">sample data</span></div>
+  <div class="tlbar">
+    <div class="seg" role="group" aria-label="Zoom presets">${[["day","Day"],["1h","1 h"],["10m","10 min"],["1m","1 min"],["10s","10 s"]].map(([k,l])=>`<button data-zp="${k}">${l}</button>`).join("")}</div>
+    <button class="iconbtn" data-zoom="in" aria-label="Zoom in">+</button><button class="iconbtn" data-zoom="out" aria-label="Zoom out">−</button>
+    <span class="tlrange mono" id="tlRange"></span><span class="grow"></span>
+    <select class="sel" id="tlFilter" aria-label="Show"><option value="all">All events</option><option value="api">Model calls</option><option value="tool">Tool runs</option><option value="prompt">Your prompts</option></select>
+    <button class="btn sm" data-tlplay>${TL.play?"Pause":"▶ Replay"}</button><select class="sel" id="tlSpeed" aria-label="Replay speed">${[[10,"10×"],[60,"60×"],[600,"600×"]].map(([v,l])=>`<option value="${v}" ${TL.speed===v?"selected":""}>${l}</option>`).join("")}</select>
+  </div>
+  <div class="tlwrap"><canvas id="tlCv" tabindex="0" aria-label="Timeline. Use left and right arrows to step between events."></canvas><div class="tltip" id="tlTip" hidden></div></div>
+  <div class="tlmini"><canvas id="tlMini" aria-label="Whole-day overview"></canvas></div>
+  <div class="tlgrid">
+    <div class="card" id="tlInspect"></div>
+    <div class="card" style="display:grid;align-content:start">
+      <div class="row" style="padding:12px 16px 0"><b class="grow" style="font-weight:500">Most expensive in view</b><div class="seg">${[["conv","Conversations"],["task","Tasks"],["tool","Tool runs"]].map(([k,l])=>`<button data-lb="${k}" aria-pressed="${TL.lb===k}">${l}</button>`).join("")}</div></div>
+      <div id="tlBoard" class="list" style="padding-top:6px"></div>
+    </div>
+  </div>
+  <p class="hint" style="margin-top:12px">Source: Claude Code’s OpenTelemetry events (user prompts, API requests with tokens and estimated cost, tool results) from every account, plus transcript timestamps. Prompt text is only kept if you turn it on, and never leaves this computer.</p>`;
+};
+function tlColors(){const cs=getComputedStyle($("#win"));const g=k=>cs.getPropertyValue(k).trim();const o={ink:g("--ink"),ink2:g("--ink2"),ink3:g("--ink3"),line:g("--line"),line2:g("--line2"),s2:g("--surface2"),surf:g("--surface"),bad:g("--bad"),warn:g("--warn")};S.profiles.forEach(p=>o[p.id]=g("--"+p.fc));return o}
+function tlInit(){
+  const cv=$("#tlCv"),mini=$("#tlMini");if(!cv)return;
+  const lanes=()=>scoped(),L=110,AX=26,HG=54,LH=40;
+  const size=()=>{const dpr=devicePixelRatio||1;[[cv,AX+HG+lanes().length*LH+10],[mini,34]].forEach(([c,h])=>{const w=c.parentElement.clientWidth;c.width=w*dpr;c.height=h*dpr;c.style.width=w+"px";c.style.height=h+"px";c.getContext("2d").setTransform(dpr,0,0,dpr,0,0)})};
+  const W=()=>cv.clientWidth,X=t=>L+(t-TL.t0)/(TL.t1-TL.t0)*(W()-L-8),Tx=x=>TL.t0+(x-L)/(W()-L-8)*(TL.t1-TL.t0);
+  const vis=()=>{const ids=new Set(lanes().map(p=>p.id));return EV.filter(e=>ids.has(e.p)&&(e.end||e.ts)>=TL.t0&&e.ts<=TL.t1)};
+  const steps=[1e3,5e3,10e3,30e3,6e4,3e5,6e5,18e5,36e5,108e5];
+  function draw(){
+    const C=tlColors(),ctx=cv.getContext("2d"),w=W(),span=TL.t1-TL.t0,ls=lanes(),h=AX+HG+ls.length*LH+10;
+    ctx.clearRect(0,0,w,h);ctx.font="11px "+getComputedStyle(document.body).fontFamily;ctx.textBaseline="middle";
+    const step=steps.find(s=>(w-L)/(span/s)>=80)||108e5;
+    ctx.fillStyle=C.ink3;ctx.strokeStyle=C.line2;ctx.lineWidth=1;
+    for(let t=Math.ceil(TL.t0/step)*step;t<=TL.t1;t+=step){const x=Math.round(X(t))+.5;ctx.beginPath();ctx.moveTo(x,AX-4);ctx.lineTo(x,h-6);ctx.stroke();ctx.fillText(fmtT(t,step<6e4),x+4,12)}
+    // spend histogram
+    const nb=Math.max(10,Math.floor((w-L)/7)),bw=(w-L-8)/nb,buckets=Array.from({length:nb},()=>({}));let mx=0;
+    const fv=vis();fv.forEach(e=>{if(e.type!=="api")return;const i=Math.min(nb-1,Math.floor((e.ts-TL.t0)/span*nb));if(i<0)return;buckets[i][e.p]=(buckets[i][e.p]||0)+e.cost});
+    buckets.forEach(b=>{const s=Object.values(b).reduce((a,v)=>a+v,0);if(s>mx)mx=s});
+    ctx.fillStyle=C.ink3;ctx.fillText("Spend",8,AX+HG/2-6);ctx.fillText(mx?money(mx)+" peak":"",8,AX+HG/2+8);
+    buckets.forEach((b,i)=>{let y=AX+HG-6;ls.forEach(p=>{const v=b[p.id]||0;if(!v)return;const hh=v/mx*(HG-14);ctx.fillStyle=C[p.id];ctx.fillRect(L+i*bw+.5,y-hh,Math.max(1,bw-1.5),hh);y-=hh})});
+    // lanes
+    const fine=span<=45*6e4;
+    ls.forEach((p,li)=>{const y0=AX+HG+li*LH,yc=y0+LH/2;
+      ctx.fillStyle=C.s2;ctx.fillRect(L,y0+4,w-L-8,LH-8);
+      ctx.fillStyle=C[p.id];ctx.beginPath();ctx.roundRect(8,yc-8,16,16,4);ctx.fill();ctx.fillStyle=C.ink;ctx.fillText(p.name.length>11?p.name.slice(0,10)+"…":p.name,30,yc);
+      const pe=fv.filter(e=>e.p===p.id);
+      pe.filter(e=>e.type==="chat").forEach(e=>{const x0=Math.max(L,X(e.ts)),x1=Math.min(w-8,X(e.end));ctx.fillStyle=C[p.id];ctx.globalAlpha=.25;ctx.fillRect(x0,y0+8,Math.max(2,x1-x0),LH-16);ctx.globalAlpha=1});
+      if(!fine){TASKS.filter(k=>k.p===p.id&&k.end>=TL.t0&&k.start<=TL.t1).forEach(k=>{const x0=Math.max(L,X(k.start)),x1=Math.min(w-8,X(k.end));ctx.fillStyle=C[p.id];ctx.globalAlpha=TL.sel&&TL.sel.task===k.id?1:.82;ctx.beginPath();ctx.roundRect(x0,y0+8,Math.max(2,x1-x0),LH-16,3);ctx.fill();ctx.globalAlpha=1})}
+      else pe.forEach(e=>{if(TL.filter!=="all"&&e.type!==TL.filter)return;const x=X(e.ts);
+        if(e.type==="prompt"){ctx.fillStyle=C.ink;ctx.fillRect(x-1,y0+5,2,LH-10)}
+        else if(e.type==="api"){const rr=2.5+Math.sqrt(e.cost)*16;ctx.fillStyle=C[p.id];ctx.beginPath();ctx.arc(x,yc,Math.min(rr,LH/2-4),0,7);ctx.fill();const x1=X(e.ts+e.dur);if(x1-x>4){ctx.globalAlpha=.25;ctx.fillRect(x,yc-2,x1-x,4);ctx.globalAlpha=1}}
+        else if(e.type==="tool"){ctx.fillStyle=e.ok?C.ink3:C.bad;ctx.fillRect(x-3,yc+8,6,6);const x1=X(e.ts+e.dur);if(x1-x>4){ctx.fillStyle=C.ink3;ctx.globalAlpha=.3;ctx.fillRect(x,yc+10,x1-x,2);ctx.globalAlpha=1}}
+        if(TL.sel===e){ctx.strokeStyle=C.ink;ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,yc,11,0,7);ctx.stroke();ctx.lineWidth=1}});
+    });
+    const nowX=X(Date.now());if(nowX>L&&nowX<w-8){ctx.fillStyle=C.ink;ctx.fillRect(nowX-1,AX-4,2,h-AX)}
+    if(TL.ph!=null){const x=X(TL.ph);ctx.fillStyle=C.warn;ctx.fillRect(x-1,AX-4,2,h-AX);ctx.fillText(fmtT(TL.ph,true),Math.min(x+4,w-60),AX+4)}
+    $("#tlRange").textContent=`${fmtT(TL.t0,span<36e5)} – ${fmtT(TL.t1,span<36e5)} · ${fmtSpan(span)} · ${fine?"each event":"tasks"}`;
+    drawMini(C);board();inspect();
+  }
+  function drawMini(C){const ctx=mini.getContext("2d"),w=mini.clientWidth,h=34,a=DAY0,b=Date.now(),xm=t=>(t-a)/(b-a)*w;ctx.clearRect(0,0,w,h);
+    ctx.fillStyle=C.s2;ctx.fillRect(0,0,w,h);const ids=new Set(lanes().map(p=>p.id));
+    TASKS.forEach(k=>{if(!ids.has(k.p))return;ctx.fillStyle=C[k.p];ctx.globalAlpha=.7;ctx.fillRect(xm(k.start),8+(lanes().findIndex(p=>p.id===k.p))*(18/Math.max(1,ids.size)),Math.max(1,xm(k.end)-xm(k.start)),Math.max(2,18/Math.max(1,ids.size)-1))});ctx.globalAlpha=1;
+    const x0=xm(TL.t0),x1=xm(TL.t1);ctx.strokeStyle=C.ink;ctx.lineWidth=1.5;ctx.strokeRect(x0+.5,1.5,Math.max(3,x1-x0),h-3);ctx.fillStyle=C.ink;ctx.globalAlpha=.08;ctx.fillRect(x0,0,Math.max(3,x1-x0),h);ctx.globalAlpha=1}
+  function board(){const el=$("#tlBoard");if(!el)return;const ids=new Set(lanes().map(p=>p.id));let rows=[];
+    if(TL.lb==="conv"){const m={};EV.forEach(e=>{if(e.type==="api"&&ids.has(e.p)&&e.ts>=TL.t0&&e.ts<=TL.t1)m[e.sid]=(m[e.sid]||0)+e.cost});rows=Object.entries(m).map(([sid,c])=>{const s=SESS.find(x=>x.sid===sid);return {p:s.p,t:s.title,sub:`${s.tasks} tasks · ${fmtT(s.start)}–${fmtT(s.end)}`,c,go:[s.start,s.end]}})}
+    else if(TL.lb==="task"){const m={};EV.forEach(e=>{if(e.type==="api"&&ids.has(e.p)&&e.ts>=TL.t0&&e.ts<=TL.t1)m[e.task]=(m[e.task]||0)+e.cost});rows=Object.entries(m).map(([id,c])=>{const k=TASKS.find(x=>x.id===id);return {p:k.p,t:k.title,sub:`${k.calls} model calls · ${fmtDur(k.end-k.start)} · ${fmtT(k.start,true)}`,c,go:[k.start,k.end]}})}
+    else{const fv=EV.filter(e=>ids.has(e.p)&&e.ts>=TL.t0&&e.ts<=TL.t1);fv.forEach((e,i)=>{if(e.type!=="tool")return;const nx=fv.slice(i+1).find(x=>x.type==="api"&&x.task===e.task);if(nx)rows.push({p:e.p,t:`${e.tool} · ${e.target}`,sub:`${(e.out/1000).toFixed(1)}K tokens of output fed to the next call · ${fmtT(e.ts,true)}`,c:nx.cost,go:[e.ts-20e3,e.ts+40e3],ev:e})})}
+    rows.sort((a,b)=>b.c-a.c);rows=rows.slice(0,6);const mx=rows[0]?rows[0].c:1;
+    el.innerHTML=rows.length?rows.map((r,i)=>{const p=P(r.p);return `<button class="drow" style="grid-template-columns:auto minmax(0,1fr) 70px;--fc:var(--${p.fc})" data-tlgo="${r.go[0]},${r.go[1]}" ${r.ev?`data-tlev="${EV.indexOf(r.ev)}"`:""}>${av(p)}<div style="min-width:0"><b style="display:block;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(r.t)}</b><span class="hint">${esc(r.sub)}</span><div class="bar" style="height:4px;margin-top:5px"><i style="width:${r.c/mx*100}%"></i></div></div><span class="num" style="text-align:end">${money(r.c)}</span></button>`}).join(""):`<div class="li"><span class="muted">Nothing in this range.</span></div>`;
+  }
+  function inspect(){const el=$("#tlInspect");if(!el)return;const e=TL.sel;
+    const ids=new Set(lanes().map(p=>p.id)),fv=EV.filter(x=>ids.has(x.p)&&x.ts>=TL.t0&&x.ts<=TL.t1),api=fv.filter(x=>x.type==="api");
+    if(!e){const cost=api.reduce((a,x)=>a+x.cost,0),tok=api.reduce((a,x)=>a+x.tin+x.tout+x.tcr+x.tcw,0);
+      el.innerHTML=`<div style="padding:14px 16px;display:grid;gap:10px"><b style="font-weight:500">In this range</b><div class="stats" style="grid-template-columns:repeat(2,minmax(0,1fr))">
+       <div class="stat"><small>Spend</small><b class="num">${money(cost)}</b></div><div class="stat"><small>Tokens</small><b class="num">${(tok/1e6).toFixed(2)}M</b></div>
+       <div class="stat"><small>Model calls</small><b class="num">${api.length}</b></div><div class="stat"><small>Tool runs</small><b class="num">${fv.filter(x=>x.type==="tool").length}</b></div></div>
+       <span class="hint">Click an event or a task on the timeline to see it to the millisecond. Use ← and → to step through events.</span></div>`;return}
+    const p=P(e.p),s=SESS.find(x=>x.sid===e.sid),k=TASKS.find(x=>x.id===e.task);
+    const kv=(a,b)=>`<div><span>${a}</span><span class="num">${b}</span></div>`;
+    let body="";
+    if(e.type==="api")body=kv("Model",e.model)+kv("Duration",fmtDur(e.dur))+kv("Input",e.tin.toLocaleString()+" tokens")+kv("Output",e.tout.toLocaleString()+" tokens")+kv("Cache read",e.tcr.toLocaleString()+" tokens")+kv("Cache write",e.tcw.toLocaleString()+" tokens")+kv("Estimated cost",money(e.cost));
+    if(e.type==="tool")body=kv("Tool",e.tool)+kv("Target",esc(e.target))+kv("Duration",fmtDur(e.dur))+kv("Output",(e.out/1000).toFixed(1)+"K tokens")+kv("Result",e.ok?"Succeeded":"Failed");
+    if(e.type==="prompt")body=kv("Prompt length",e.chars+" characters")+kv("Prompt text","Off (turn on in Settings)");
+    if(e.type==="chat")body=kv("Surface","Desktop chat")+kv("Duration",fmtDur(e.end-e.ts))+kv("Cost","Not reported by Claude Desktop");
+    el.innerHTML=`<div style="padding:14px 16px;display:grid;gap:10px"><div class="row">${av(p)}<b class="grow" style="font-weight:500">${e.type==="api"?"Model call":e.type==="tool"?"Tool run":e.type==="prompt"?"Your prompt":"Chat"}</b><button class="btn ghost sm" data-tlclear aria-label="Clear selection">✕</button></div>
+     <div class="mono" style="font-size:20px;letter-spacing:-.02em">${fmtMs(e.ts)}</div>
+     <div class="preview">${kv("Account",esc(p.name))}${kv("Conversation",esc(s?s.title:"–"))}${k?kv("Task",esc(k.title)):""}${body}</div>
+     <div class="row"><button class="btn sm" data-tlstep="-1">← Previous</button><button class="btn sm" data-tlstep="1">Next →</button><span class="grow"></span>${k?`<button class="btn sm" data-tlgo="${k.start},${k.end}">Zoom to task</button>`:""}</div></div>`}
+  function hit(mx,my){const ls=lanes(),li=Math.floor((my-AX-HG)/LH);if(li<0||li>=ls.length)return null;const p=ls[li],span=TL.t1-TL.t0,t=Tx(mx);
+    if(span>45*6e4){const k=TASKS.find(k=>k.p===p.id&&t>=k.start-span/300&&t<=k.end+span/300);if(!k)return null;return EV.find(e=>e.task===k.id&&e.type==="prompt")}
+    let best=null,bd=8;EV.forEach(e=>{if(e.p!==p.id||(TL.filter!=="all"&&e.type!==TL.filter)||e.type==="chat")return;const d=Math.abs(X(e.ts)-mx);if(d<bd){bd=d;best=e}});return best}
+  function zoomAt(f,cx){const t=cx!=null?Tx(cx):(TL.t0+TL.t1)/2,a=DAY0,b=Date.now();let s=(TL.t1-TL.t0)*f;s=Math.max(5e3,Math.min(b-a,s));const k=(t-TL.t0)/(TL.t1-TL.t0);TL.t0=t-s*k;TL.t1=TL.t0+s;clamp();draw()}
+  function clamp(){const a=DAY0,b=Date.now(),s=TL.t1-TL.t0;if(TL.t0<a){TL.t0=a;TL.t1=a+s}if(TL.t1>b){TL.t1=b;TL.t0=b-s}}
+  function setSpan(ms,center){const c=center!=null?center:(TL.sel?TL.sel.ts:(TL.t0+TL.t1)/2);TL.t0=c-ms/2;TL.t1=c+ms/2;clamp();draw()}
+  let drag=null;
+  cv.onwheel=e=>{e.preventDefault();zoomAt(e.deltaY>0?1.25:.8,e.offsetX)};
+  cv.onpointerdown=e=>{drag={x:e.offsetX,t0:TL.t0,t1:TL.t1,moved:false};cv.setPointerCapture(e.pointerId)};
+  cv.onpointermove=e=>{const tip=$("#tlTip");if(drag){const dx=e.offsetX-drag.x;if(Math.abs(dx)>3)drag.moved=true;const dt=dx/(W()-L-8)*(drag.t1-drag.t0);TL.t0=drag.t0-dt;TL.t1=drag.t1-dt;clamp();draw();tip.hidden=true;return}
+    const h=hit(e.offsetX,e.offsetY);if(h){const p=P(h.p),k=TASKS.find(x=>x.id===h.task),span=TL.t1-TL.t0;tip.hidden=false;tip.style.left=Math.min(e.offsetX+12,W()-230)+"px";tip.style.top=(e.offsetY+12)+"px";
+      tip.innerHTML=span>45*6e4&&k?`<b>${esc(k.title)}</b><br>${esc(p.name)} · ${fmtT(k.start)}–${fmtT(k.end)} · ${money(k.cost)}`:`<b>${h.type==="api"?"Model call "+money(h.cost):h.type==="tool"?h.tool+" · "+esc(h.target):"Prompt"}</b><br>${esc(p.name)} · ${fmtMs(h.ts)}`;cv.style.cursor="pointer"}else{tip.hidden=true;cv.style.cursor="grab"}};
+  cv.onpointerup=e=>{const was=drag&&drag.moved;drag=null;if(was)return;const h=hit(e.offsetX,e.offsetY);TL.sel=h;draw()};
+  cv.onpointerleave=()=>{$("#tlTip").hidden=true};
+  cv.ondblclick=e=>{const h=hit(e.offsetX,e.offsetY);if(h){const k=TASKS.find(x=>x.id===h.task);if(k){TL.t0=k.start-5e3;TL.t1=k.end+5e3;clamp();draw()}}};
+  cv.onkeydown=e=>{if(e.key==="ArrowRight"||e.key==="ArrowLeft"){e.preventDefault();step(e.key==="ArrowRight"?1:-1)}if(e.key==="+"||e.key==="=")zoomAt(.8);if(e.key==="-")zoomAt(1.25)};
+  function step(d){const ids=new Set(lanes().map(p=>p.id)),list=EV.filter(x=>ids.has(x.p)&&x.type!=="chat"&&(TL.filter==="all"||x.type===TL.filter));if(!list.length)return;let i=TL.sel?list.indexOf(TL.sel):-1;
+    if(i<0)i=d>0?list.findIndex(x=>x.ts>=TL.t0):list.length-1-[...list].reverse().findIndex(x=>x.ts<=TL.t1);else i=Math.max(0,Math.min(list.length-1,i+d));TL.sel=list[i];
+    if(TL.sel.ts<TL.t0||TL.sel.ts>TL.t1){const s=TL.t1-TL.t0;TL.t0=TL.sel.ts-s/2;TL.t1=TL.t0+s;clamp()}draw()}
+  let mdrag=false;const mjump=e=>{const r=mini.getBoundingClientRect(),a=DAY0,b=Date.now(),t=a+(e.clientX-r.left)/r.width*(b-a),s=TL.t1-TL.t0;TL.t0=t-s/2;TL.t1=t+s/2;clamp();draw()};
+  mini.onpointerdown=e=>{mdrag=true;mini.setPointerCapture(e.pointerId);mjump(e)};mini.onpointermove=e=>{if(mdrag)mjump(e)};mini.onpointerup=()=>{mdrag=false};
+  const presets={day:Date.now()-DAY0,"1h":36e5,"10m":6e5,"1m":6e4,"10s":1e4};
+  $("#main").querySelectorAll("[data-zp]").forEach(b=>b.onclick=()=>{const k=b.dataset.zp;if(k==="day"){TL.t0=DAY0;TL.t1=Date.now();draw()}else setSpan(presets[k])});
+  $("#main").querySelectorAll("[data-zoom]").forEach(b=>b.onclick=()=>zoomAt(b.dataset.zoom==="in"?.8:1.25));
+  $("#tlFilter").value=TL.filter;$("#tlFilter").onchange=e=>{TL.filter=e.target.value;draw()};
+  $("#tlSpeed").onchange=e=>{TL.speed=+e.target.value};
+  $("#main").querySelector("[data-tlplay]").onclick=ev=>{TL.play=!TL.play;ev.target.textContent=TL.play?"Pause":"▶ Replay";if(TL.play){if(TL.ph==null||TL.ph>=TL.t1)TL.ph=TL.t0;let last=performance.now();
+    const tick=ts=>{if(!TL.play||!$("#tlCv"))return;const dt=(ts-last)*TL.speed;last=ts;const prev=TL.ph;TL.ph+=dt;const ids=new Set(lanes().map(p=>p.id));const hitE=EV.filter(x=>ids.has(x.p)&&x.type!=="chat"&&x.ts>prev&&x.ts<=TL.ph);if(hitE.length)TL.sel=hitE[hitE.length-1];
+      if(TL.ph>TL.t1-(TL.t1-TL.t0)*.1){const s=TL.t1-TL.t0;TL.t0=TL.ph-s*.5;TL.t1=TL.t0+s;clamp();if(TL.ph>=Date.now()){TL.play=false;const b=$("#main [data-tlplay]");b&&(b.textContent="▶ Replay")}}draw();TL.raf=requestAnimationFrame(tick)};TL.raf=requestAnimationFrame(tick)}else cancelAnimationFrame(TL.raf)};
+  $("#main").onclickTL&&0;
+  const mainClick=e=>{const b=e.target.closest("button");if(!b||!$("#tlCv"))return;
+    if(b.dataset.lb){TL.lb=b.dataset.lb;$$("[data-lb]").forEach(x=>x.setAttribute("aria-pressed",x===b));board()}
+    if(b.dataset.tlgo){const [a,z]=b.dataset.tlgo.split(",").map(Number),pad=Math.max(5e3,(z-a)*.08);TL.t0=a-pad;TL.t1=z+pad;clamp();if(b.dataset.tlev)TL.sel=EV[+b.dataset.tlev];draw()}
+    if(b.hasAttribute("data-tlclear")){TL.sel=null;draw()}
+    if(b.dataset.tlstep)step(+b.dataset.tlstep)};
+  $("#tlInspect").onclick=mainClick;$("#tlBoard").onclick=mainClick;
+  const ro=new ResizeObserver(()=>{size();draw()});ro.observe(cv.parentElement);
+  size();draw();
+}
+
+/* ================= render ================= */
+function render(){
+  $("#app").setAttribute("dir",S.lang==="ar"?"rtl":"ltr");
+  renderChrome();renderRail();renderSide();
+  const m=$("#main");m.innerHTML=V[S.view]();
+  if(S.view==="folders"){updatePath();$("#pathIn").addEventListener("input",updatePath)}
+  const keep=(id,key)=>{const el=$("#"+id);if(!el)return;el.addEventListener("input",()=>{S[key]=el.value;const pos=el.selectionStart;render();const n=$("#"+id);n.focus();n.setSelectionRange(pos,pos)})};
+  if(S.view==="sessions")keep("sessQ","sessQ");
+  if(S.view==="ecosystem")keep("ecoQ","ecoQ");
+  if(S.view==="control"){const c=S.ctl[S.ctlP];[["cModel","model"],["cStyle","style"],["cMode","mode"]].forEach(([id,k])=>$("#"+id).addEventListener("change",e=>{c[k]=e.target.value;c.dirty=true;render()}))}
+  if(S.view==="bridge"){[["bFrom","from"],["bTo","to"]].forEach(([id,k])=>$("#"+id).addEventListener("change",e=>{S.br[k]=e.target.value;render()}))}
+  if(S.view==="timeline")tlInit();
+  if(S.view==="settings")$("#lang").addEventListener("change",e=>{S.lang=e.target.value;render()});
+}
+function go(v){if(v!=="timeline"){TL.play=false;cancelAnimationFrame(TL.raf)}S.view=v;store.set("view",v);S.confirmRm=null;closeMenu();$("#main").scrollTop=0;render()}
+setInterval(()=>{$$("[data-live]").forEach(el=>{const v=+el.dataset.live;if(!v)return;const tx=fmtLeft(v-Date.now());el.textContent=el.closest(".acc")?"resets in "+tx:tx})},1000);
+
+/* ================= theme ================= */
+function applyTheme(){const r=document.documentElement;if(S.theme==="system")r.removeAttribute("data-theme");else r.setAttribute("data-theme",S.theme);
+  const dark=S.theme==="dark"||(S.theme==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);$("#themeBtn").innerHTML=ic(dark?"sun":"moon",16)}
+$("#themeBtn").addEventListener("click",()=>{const dark=S.theme==="dark"||(S.theme==="system"&&matchMedia("(prefers-color-scheme: dark)").matches);S.theme=dark?"light":"dark";store.set("theme",S.theme);applyTheme()});
+
+/* ================= menu ================= */
+let menuEl=null;const closeMenu=()=>{if(menuEl){menuEl.remove();menuEl=null}};
+function openMenu(btn,id){closeMenu();const p=P(id),w=$("#win").getBoundingClientRect(),b=btn.getBoundingClientRect();
+  menuEl=document.createElement("div");menuEl.className="menu";
+  menuEl.innerHTML=`<button data-m="folder">Open data folder</button><button data-m="edit">Rename or recolour…</button><button data-m="resign">Sign in again (guided)</button><button data-m="export">Export settings…</button><button data-m="rm" style="color:var(--bad)">Remove…</button>`;
+  $("#win").appendChild(menuEl);const mw=210;menuEl.style.left=Math.min(Math.max(8,b.right-w.left-mw),w.width-mw-8)+"px";menuEl.style.top=(b.bottom-w.top+6)+"px";
+  menuEl.addEventListener("click",e=>{const a=e.target.dataset.m;if(!a)return;closeMenu();
+    if(a==="folder")toast(`Opened <code>${esc(OS[S.os].dir(p))}</code>`);
+    if(a==="edit")openNew(p);
+    if(a==="resign")openNew(p,3);
+    if(a==="export")toast(`Exported ${esc(p.name)} settings, no sign-in data`);
+    if(a==="rm"){S.confirmRm=id;render()}})}
+
+/* ================= add account (guided) ================= */
+function openNew(edit,startStep){
+  const colors=["f1","f2","f3","f4","f5","f6"],used=S.profiles.map(p=>p.fc);
+  const st={step:startStep||1,name:edit?edit.name:"",fc:edit?edit.fc:(colors.find(c=>!used.includes(c))||"f5"),plan:edit?edit.plan:"Pro",desktop:edit?edit.desktop:true,cli:edit?edit.cli:true,signing:0,email:""};
+  const ov=document.createElement("div");ov.className="overlay";
+  const steps=["Name","Create","Sign in","Check"];
+  const draw=()=>{const fake={id:"new",name:st.name||"New",fc:st.fc},o=OS[S.os],others=S.profiles.filter(p=>p.running&&(!edit||p.id!==edit.id));
+   let body="";
+   if(st.step===1)body=`<div class="field"><label for="nName">Account name</label><input class="inp" id="nName" placeholder="e.g. Freelance, Acme client, Research" value="${esc(st.name)}"></div>
+     <div class="field"><label>Colour</label><div class="sw">${colors.map(c=>`<button style="--fc:var(--${c})" aria-pressed="${st.fc===c}" data-c="${c}" aria-label="Colour ${c}"></button>`).join("")}</div><span class="hint">Windows of this account get this colour, so you always know where you are typing.</span></div>
+     <div class="field"><label for="nPlan">Plan</label><select class="inp" id="nPlan">${["Free","Pro","Max 5x","Max 20x","Team","Enterprise"].map(x=>`<option ${x===st.plan?"selected":""}>${x}</option>`).join("")}</select></div>`;
+   if(st.step===2)body=`<div class="checks"><label><input type="checkbox" id="nD" ${st.desktop?"checked":""}><span><b>Desktop app</b><br><span class="hint">A separate Claude window with its own sign-in</span></span></label>
+     <label><input type="checkbox" id="nC" ${st.cli?"checked":""}><span><b>Claude Code in the terminal</b><br><span class="hint">Adds the <code class="c">claude-${esc(slug(fake))}</code> command</span></span></label></div>
+     <div class="preview"><div><span>Data folder</span><span class="mono">${esc(o.dir(fake))}</span></div>${st.cli?`<div><span>Claude Code folder</span><span class="mono">${esc(o.cli(fake))}</span></div>`:""}${st.desktop?`<div><span>Launcher</span><span>${esc(o.entry(fake))}</span></div>`:""}<div><span>Copied from other accounts</span><span>Nothing. Sign-in is always fresh.</span></div></div>`;
+   if(st.step===3)body=`<div class="callout">${ic("shield",16)}<span class="grow">Sign-in links can open in whichever Claude window registered last. To keep them in the right place, Facet briefly closes your other accounts${others.length?` (${others.map(p=>esc(p.name)).join(", ")})`:""} and reopens them afterwards.</span></div>
+     <ol style="margin:0;padding-inline-start:20px;display:grid;gap:6px;color:var(--ink2)"><li>Facet opens <b>${esc(st.name||"the new account")}</b> in its own Claude window.</li><li>Choose <b>Continue with email</b> and enter the code Claude sends you. It avoids browser redirects entirely.</li><li>Come back here when the window shows your chats.</li></ol>
+     ${st.signing===0?`<button class="btn pri" data-sign style="justify-self:start">${ic("play",12)} Start sign-in</button>`:st.signing===1?`<div class="callout"><span class="st working"><i></i></span> Waiting for you to finish signing in…</div>`:`<div class="callout" style="background:var(--ok-s);color:var(--ok);border-color:transparent">Signed in. Your other accounts are back.</div>`}`;
+   if(st.step===4)body=`<div class="field"><label for="nEmail">Which email did you sign in with?</label><input class="inp" id="nEmail" placeholder="you@client.example" value="${esc(st.email)}"><span class="hint">Facet compares it with the account Claude reports, to catch a sign-in that landed in the wrong window.</span></div>
+     ${st.email.includes("@")?`<div class="callout" style="background:var(--ok-s);color:var(--ok);border-color:transparent">Match. ${esc(st.name)} is signed in as ${esc(st.email)}.</div>`:""}`;
+   const canNext=st.step===1?!!st.name.trim():st.step===2?(st.desktop||st.cli):st.step===3?st.signing===2:st.email.includes("@");
+   ov.innerHTML=`<div class="modal" role="dialog" aria-modal="true" aria-label="${edit?"Edit":"Add"} account"><header>${av(fake,1)}<h3>${edit?(startStep===3?"Sign in again":"Edit account"):"Add an account"}</h3><button class="btn ghost sm" data-x aria-label="Close">✕</button></header>
+    <div class="steps">${steps.map((s,i)=>`${i?"<em>—</em>":""}<span class="${st.step===i+1?"on":st.step>i+1?"done":""}"><i>${st.step>i+1?"✓":i+1}</i>${s}</span>`).join("")}</div>
+    <div class="body">${body}</div>
+    <footer>${st.step>1&&!(edit&&startStep===3&&st.step===3)?'<button class="btn" data-back>Back</button>':""}<span class="grow"></span>${edit&&st.step<=2?'<button class="btn" data-save>Save</button>':""}<button class="btn pri" data-next ${canNext?"":"disabled"}>${st.step===4?"Finish":"Continue"}</button></footer></div>`;
+   const n=$("#nName",ov);if(n){n.focus();n.setSelectionRange(n.value.length,n.value.length);n.addEventListener("input",()=>{st.name=n.value;const pos=n.selectionStart;draw();const m=$("#nName",ov);m.setSelectionRange(pos,pos)})}
+   const em=$("#nEmail",ov);if(em){em.focus();em.setSelectionRange(em.value.length,em.value.length);em.addEventListener("input",()=>{st.email=em.value;const pos=em.selectionStart;draw();const m=$("#nEmail",ov);m.setSelectionRange(pos,pos)})}
+   const pl=$("#nPlan",ov);pl&&pl.addEventListener("change",e=>st.plan=e.target.value);
+   const d=$("#nD",ov);d&&d.addEventListener("change",e=>{st.desktop=e.target.checked;draw()});
+   const c=$("#nC",ov);c&&c.addEventListener("change",e=>{st.cli=e.target.checked;draw()});
+  };
+  const finish=()=>{
+    if(edit){Object.assign(edit,{name:st.name.trim(),fc:st.fc,plan:st.plan,desktop:st.desktop,cli:st.cli});if(st.email)edit.email=st.email;toast(`Saved ${esc(edit.name)}`)}
+    else{let id=slug({name:st.name});while(P(id))id+="-2";S.profiles.push({id,name:st.name.trim(),email:st.email,plan:st.plan,fc:st.fc,running:true,desktop:st.desktop,cli:st.cli,session:0,weekly:0,reset:null,tint:true,ex:false});S.day[id]=[];S.obs.tree[id]=[];EV=null;toast(`${esc(st.name)} is ready`)}
+    ov.remove();render()};
+  ov.addEventListener("click",e=>{
+    if(e.target===ov||e.target.closest("[data-x]")){ov.remove();return}
+    const c=e.target.closest("[data-c]");if(c){st.fc=c.dataset.c;draw();return}
+    if(e.target.closest("[data-back]")){st.step--;draw();return}
+    if(e.target.closest("[data-save]")&&st.name.trim()){finish();return}
+    if(e.target.closest("[data-sign]")){st.signing=1;draw();setTimeout(()=>{st.signing=2;draw()},reduce?200:1800);return}
+    if(e.target.closest("[data-next]")){if(st.step===4)finish();else{st.step++;draw()}}
+  });
+  ov.addEventListener("keydown",e=>{if(e.key==="Escape")ov.remove()});
+  $("#win").appendChild(ov);draw();
+}
+
+/* ================= palette ================= */
+function openPal(){if($(".pal"))return;
+  const acts=[...S.profiles.map(p=>({l:`${p.running?"Show":"Launch"} ${p.name}`,k:p.plan,p,run:()=>{p.running=true;toast(`${esc(p.name)} is in front`);render()}})),
+    ...S.profiles.map(p=>({l:`Switch scope to ${p.name}`,k:"scope",p,run:()=>{S.scope=p.id;render()}})),
+    ...S.profiles.filter(p=>p.cli).map(p=>({l:`Terminal as ${p.name}`,k:`claude-${slug(p)}`,p,run:()=>termToast(p)})),
+    {l:"Add account",k:"",run:()=>openNew()},{l:"All accounts",k:"scope",run:()=>{S.scope="all";render()}},
+    ...NAV.flatMap(g=>g[1]).map(v=>({l:`Go to ${T.en[v]}`,k:"",run:()=>go(v)})),{l:"Run health checks",k:"",run:()=>{go("health");runDoctor()}}];
+  const ov=document.createElement("div");ov.className="overlay";ov.innerHTML=`<div class="pal" role="dialog" aria-label="Quick switcher"><input id="palIn" placeholder="Type an account or an action" aria-label="Quick switcher"><ul id="palList" role="listbox"></ul></div>`;
+  $("#win").appendChild(ov);let sel=0,cur=acts;const inp=$("#palIn",ov),ul=$("#palList",ov);
+  const draw=()=>{const q=inp.value.toLowerCase().trim();cur=acts.filter(a=>!q||q.split(/\s+/).every(w=>a.l.toLowerCase().includes(w)));sel=Math.min(sel,Math.max(cur.length-1,0));
+    ul.innerHTML=cur.length?cur.map((a,i)=>`<li role="option" aria-selected="${i===sel}" data-i="${i}">${a.p?av(a.p):`<span class="av" style="--fc:var(--ink3)">›</span>`}<span>${esc(a.l)}</span><span class="k mono">${esc(a.k)}</span></li>`).join(""):`<li class="muted">Nothing matches</li>`};
+  const run=i=>{const a=cur[i];if(!a)return;ov.remove();a.run()};
+  inp.addEventListener("input",()=>{sel=0;draw()});
+  inp.addEventListener("keydown",e=>{if(e.key==="ArrowDown"){sel=Math.min(sel+1,cur.length-1);draw();e.preventDefault()}else if(e.key==="ArrowUp"){sel=Math.max(sel-1,0);draw();e.preventDefault()}else if(e.key==="Enter")run(sel);else if(e.key==="Escape")ov.remove()});
+  ul.addEventListener("click",e=>{const li=e.target.closest("[data-i]");if(li)run(+li.dataset.i)});ov.addEventListener("click",e=>{if(e.target===ov)ov.remove()});
+  draw();inp.focus()}
+const termToast=p=>toast(`Terminal opened: <code>CLAUDE_CONFIG_DIR=${esc(OS[S.os].cli(p))} claude</code>`);
+
+function runDoctor(){const rows=$$("#docList .chk");if(!rows.length)return;const cs=CHECKS();
+  rows.forEach(r=>{const i=r.querySelector(".i");i.className="i run";i.textContent="";r.querySelector("p").textContent="Checking…";r.lastElementChild.outerHTML="<span></span>"});
+  rows.forEach((r,i)=>setTimeout(()=>{const c=cs[i],n=r.querySelector(".i");n.className="i "+c.s;n.textContent=c.s==="ok"?"✓":"!";r.querySelector("p").textContent=c.b;
+    if(c.fix){const b=document.createElement("button");b.className="btn sm";b.dataset.act="docfix";b.dataset.ci=i;b.textContent=c.fix;r.lastElementChild.replaceWith(b)}
+    if(i===rows.length-1){S.doctorRan=true;renderSide()}},reduce?0:330*(i+1)))}
+
+/* ================= events ================= */
+$("#rail").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.act==="new"){openNew();return}if(b.dataset.scope){S.scope=b.dataset.scope;S.obs.path=[];render()}});
+$("#side").addEventListener("click",e=>{const n=e.target.closest("[data-nav]");if(n)go(n.dataset.nav);if(e.target.closest("#openPal"))openPal()});
+$("#main").addEventListener("click",e=>{
+  const el=e.target.closest("button");if(!el)return;const a=el.dataset.act,id=el.dataset.id,p=id&&P(id);
+  if(el.dataset.menu){e.stopPropagation();openMenu(el,el.dataset.menu);return}
+  if(a==="new")openNew();
+  if(a==="opentl")go("timeline");
+  if(a==="launch"&&p){p.running=true;if(!p.reset)p.reset=Date.now()+300*M;toast(`Launching <b>${esc(p.name)}</b> in a clean environment…`);render()}
+  if(a==="focus"&&p)toast(`${esc(p.name)} brought to front`);
+  if(a==="quit"&&p){p.running=false;toast(`${esc(p.name)} quit`);render()}
+  if(a==="quitall"){S.profiles.forEach(x=>x.running=false);toast("All accounts quit");render()}
+  if(a==="term"&&p)termToast(p);
+  if(a==="rm"&&p){S.profiles=S.profiles.filter(x=>x!==p);if(S.scope===p.id)S.scope="all";S.confirmRm=null;toast(`Removed ${esc(p.name)}. Its folder is still on disk.`);render()}
+  if(a==="keep"){S.confirmRm=null;render()}
+  if(el.dataset.tint){const x=P(el.dataset.tint);x.tint=!x.tint;render()}
+  if(a==="answer"){const l=S.live.find(x=>x.id===el.dataset.l);l.state="working";l.task="Applying the approved migration plan";toast(`Opened <b>${esc(P(l.p).name)}</b> at <code>${esc(l.project)}</code>`);render()}
+  if(el.dataset.range){S.obs.range=el.dataset.range;render()}
+  if(el.dataset.drill){S.obs.path=JSON.parse(el.dataset.drill);render()}
+  if(el.dataset.crumb!=null){const n=+el.dataset.crumb;S.obs.path=S.obs.path.slice(0,n);if(S.scope!=="all"&&!S.obs.path.length)S.obs.path=[S.scope];render()}
+  if(a==="invoice")toast(`Exported ${esc(el.dataset.c)} usage as CSV, by day and session`);
+  if(a==="addbudget")toast("Pick a client folder and a monthly limit");
+  if(a==="gopro"){S.pro=true;render();toast("Showing Pro features")}
+  if(el.dataset.ctlp){S.ctlP=el.dataset.ctlp;render()}
+  const c=S.ctl[S.ctlP];
+  if(el.dataset.eff){c.effort=el.dataset.eff;c.dirty=true;render()}
+  if(el.dataset.cflag){c[el.dataset.cflag]=!c[el.dataset.cflag];c.dirty=true;render()}
+  if(el.dataset.hook!=null){c.hooks[+el.dataset.hook].on=!c.hooks[+el.dataset.hook].on;c.dirty=true;render()}
+  if(el.dataset.rmrule){c[el.dataset.rmrule]=c[el.dataset.rmrule].filter(x=>x!==el.dataset.r);c.dirty=true;render()}
+  if(a==="addallow"||a==="adddeny"){const v=$("#ruleIn").value.trim();if(v){c[a==="addallow"?"allow":"deny"].push(v);c.dirty=true;render()}}
+  if(el.dataset.tpl){const k=el.dataset.tpl;if(k==="strict")Object.assign(c,{mode:"default",effort:"high",allow:["Read(src/**)"],deny:["Read(.env*)","Bash(curl:*)","Bash(git push:*)","WebFetch"]});if(k==="power")Object.assign(c,{mode:"auto",effort:"max",model:"Opus 5.5",allow:["Bash(npm:*)","Bash(git:*)","Edit(**)"],deny:["Read(.env*)","Bash(rm -rf:*)"]});if(k==="learn")Object.assign(c,{mode:"plan",effort:"medium",style:"Learning",model:"Sonnet 5.5"});c.dirty=true;render();toast("Preset loaded. Review, then save.")}
+  if(a==="apply"){c.dirty=false;render();toast(`Saved for <b>${esc(P(S.ctlP).name)}</b> · backup kept · applies to new sessions`)}
+  if(a==="copyto")toast(S.pro?"Choose accounts to copy to. Their settings are backed up first.":"Copying settings between accounts is part of Pro");
+  if(el.dataset.ecotab){S.ecoTab=el.dataset.ecotab;render()}
+  if(el.dataset.ecof){S.ecoF=el.dataset.ecof;render()}
+  if(el.dataset.eco)openEco(el.dataset.eco);
+  if(el.dataset.einst){const x=S.eco.find(y=>y.id===el.dataset.einst),pid=el.dataset.p;x.inst=x.inst.includes(pid)?x.inst.filter(y=>y!==pid):[...x.inst,pid];toast(`${esc(x.name)} ${x.inst.includes(pid)?"added to":"removed from"} ${esc(P(pid).name)} · backup saved`);render()}
+  if(el.dataset.resume){const s=S.sessions.find(x=>x.id===el.dataset.resume),pr=P(s.p);toast(`Resuming in <b>${esc(pr.name)}</b>: <code>claude-${esc(slug(pr))} --resume ${s.id}</code>`)}
+  if(a==="addrule")toast("Pick a folder, then an account");
+  if(a==="btest"){S.bridgeTest="run";render();setTimeout(()=>{S.bridgeTest="no";if(S.view==="bridge")render()},reduce?200:2200)}
+  if(el.dataset.msgfrom){S.br.from=el.dataset.msgfrom;if(S.br.to===S.br.from)S.br.to=(S.live.find(l=>l.id!==S.br.from&&!S.walls[l.p])||{}).id;render()}
+  if(el.dataset.wall){S.walls[el.dataset.wall]=!S.walls[el.dataset.wall];render()}
+  if(a==="send"){const fr=S.live.find(l=>l.id===S.br.from),to=S.live.find(l=>l.id===S.br.to),bl=S.walls[fr.p]||S.walls[to.p];const r={from:fr.id,to:to.id,text:$("#bText").value.trim()||"(empty)",t:"Just now",reply:bl?"Blocked by a wall.":"Delivered. Waiting for a reply…"};S.relays.unshift(r);render();
+    if(!bl)setTimeout(()=>{r.reply="Exponential backoff, 3 tries from 400 ms. See lib/fetchRetry.ts.";if(S.view==="bridge")render();toast(`Reply from <b>${esc(P(to.p).name)}</b>`)},1500)}
+  if(a==="rundoc")runDoctor();
+  if(a==="docfix"){const i=+el.dataset.ci;if(i===4){go("ecosystem");openEco("pagefetch")}else toast("Opened ~/.bashrc at line 42")}
+  if(a==="backup")toast("Backed up settings for all accounts · 2.1 MB, encrypted");
+  if(a==="hotkey")toast(S.os==="linux"?"Opened GNOME keyboard settings with the command filled in":"Press the keys you want");
+  if(el.dataset.plan){S.pro=el.dataset.plan==="pro";render()}
+  if(el.dataset.set){const k=el.dataset.set;S.settings[k]=!S.settings[k];el.setAttribute("aria-checked",S.settings[k])}
+});
+document.addEventListener("click",e=>{if(menuEl&&!e.target.closest(".menu"))closeMenu()});
+document.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"&&S.tab==="p"){e.preventDefault();openPal()}if(e.key==="Escape")closeMenu()});
+$("#osSeg").addEventListener("click",e=>{const b=e.target.closest("[data-os]");if(!b)return;S.os=b.dataset.os;store.set("os",S.os);$$("#osSeg button").forEach(x=>x.setAttribute("aria-pressed",x===b));render()});
+function setTab(x){S.tab=x;store.set("tab",x);$("#tabP").setAttribute("aria-pressed",x==="p");$("#tabB").setAttribute("aria-pressed",x==="b");$("#proto").hidden=x!=="p";$("#blueprint").hidden=x!=="b"}
+$("#tabP").addEventListener("click",()=>setTab("p"));$("#tabB").addEventListener("click",()=>setTab("b"));
+
+/* ================= blueprint ================= */
+$("#blueprint").innerHTML=`<div class="bp">
+ <div class="hero"><span class="eyebrow">Product blueprint · after five research tracks · October 2026</span>
+  <h2>Build it narrow: the account-aware control layer for Claude</h2>
+  <p>People clearly need several Claude accounts on one computer, mostly to keep an employer seat apart from a personal plan. But running several accounts is already a $10–30 commodity, and Anthropic is likely to add it natively. Facet uses isolation as the way in and sells what comes after: what each account costs, what it is allowed to do, and what third-party code it runs.</p>
+  <div class="verdict"><span class="pill ok">Build</span><span class="pill">Linux first, then Windows, macOS last</span><span class="pill">Open core + Pro</span><span class="pill warn">Bridge stays in the lab</span></div></div>
+
+ <div><span class="eyebrow">What the research found</span><div class="facts" style="margin-top:10px">
+  <div class="fact"><b class="num">1,186</b><p>reactions and 217 comments on the Claude Desktop multi-account request, with no Anthropic reply in nine months.</p><a href="https://github.com/anthropics/claude-code/issues/18435">anthropics/claude-code#18435</a></div>
+  <div class="fact"><b>5–6×</b><p>more comments about separating work, personal and client accounts than about usage limits.</p><a href="https://github.com/anthropics/claude-code/issues/18435">Keyword pass over #18435</a></div>
+  <div class="fact"><b>$10–30</b><p>is what about five existing apps charge, one-time, mostly for a single OS and with little traction.</p><a href="https://claudeprofiles.com/">claudeprofiles.com</a></div>
+  <div class="fact"><b>148k★</b><p>for cc-switch, a Tauri control panel for Claude tools. It lacks multiple Claude logins and Desktop, for now.</p><a href="https://github.com/farion1231/cc-switch">farion1231/cc-switch</a></div>
+ </div></div>
+
+ <div class="cols">
+  <div class="box"><h3>Who it is for</h3><ul>
+   <li><b>Consultants and freelancers</b> with an account per client. They bill clients and already pay $100–200 a month for Max. They are the paying core.</li>
+   <li><b>Employer seat + personal plan</b> on Windows and Linux. The largest group, and the least served. The way in.</li>
+   <li><b>Not for</b> people stacking Max plans to stretch limits. Free tools serve them and it invites enforcement.</li></ul></div>
+  <div class="box"><h3>What nobody offers</h3><ul>
+   <li>Desktop and Claude Code accounts in one app on all three systems</li>
+   <li>Costs across accounts, down to the single tool call, with client budgets</li>
+   <li>A full per-account settings editor that shows the change before saving</li>
+   <li>A safety preview before installing skills, plugins or MCP servers</li></ul></div>
+ </div>
+
+ <div class="cols">
+  <div class="box"><h3>Version 1 (6–8 weeks, Linux first)</h3><ul>
+   <li><b>Accounts:</b> separate Desktop instance plus matching Claude Code folder, colour tint, guided sign-in, environment scrubbing</li>
+   <li><b>Control:</b> settings editor with schema check, diff, backup and atomic save</li>
+   <li><b>Costs:</b> Claude Code telemetry from each account into a local database</li>
+   <li><b>Ecosystem:</b> read-only safety preview before anything is installed</li></ul></div>
+  <div class="box no"><h3>Left out on purpose</h3><ul>
+   <li>Automatic account rotation or limit pooling</li>
+   <li>Clicking or typing inside the Claude app</li>
+   <li>Reading, copying or syncing tokens, cookies or keychain items</li>
+   <li>Taking over <span class="mono">claude://</span> links, re-signed app copies, Windows taskbar tricks</li>
+   <li>“Claude” in the name, logo, domain or package</li></ul></div>
+ </div>
+
+ <div><span class="eyebrow">How each platform does it</span><div class="tw" style="margin-top:10px"><table><thead><tr><th>Capability</th><th>Linux</th><th>Windows</th><th>macOS</th></tr></thead><tbody>
+  <tr><td><b>Separate Desktop instance</b></td><td>Proven on your machine</td><td>Store alias or portable copy (MSIX blocks direct launch)</td><td>Proven with <span class="mono">open -n</span></td></tr>
+  <tr><td><b>Telling windows apart</b></td><td>Own dock icon under X11; badge on Wayland</td><td>Colour badge; taskbar groups unproven</td><td>Launcher icon; windows share Claude’s Dock icon</td></tr>
+  <tr><td><b>Sign-in links</b></td><td colspan="3">Go to the last-registered window everywhere, so Facet serialises sign-ins and checks the email afterwards</td></tr>
+  <tr><td><b>Claude Code accounts</b></td><td colspan="3">Officially supported through one <span class="mono">CLAUDE_CONFIG_DIR</span> per account</td></tr>
+  <tr><td><b>Usage data</b></td><td colspan="3">Official OpenTelemetry per account; Desktop chat has no telemetry</td></tr>
+ </tbody></table></div></div>
+
+ <div><span class="eyebrow">Business model</span><div class="tiers" style="margin-top:10px">
+  <div class="tier"><span class="hint">Free · open source</span><span class="p">$0</span><ul><li>Unlimited accounts on all three systems</li><li>Colours, guided sign-in, clean environment</li><li>Basic settings editor</li><li>Costs for one account at a time</li></ul></div>
+  <div class="tier hl"><span class="hint">Pro · for consultants</span><span class="p">$9<span class="hint" style="font-size:13px">/mo</span> <span class="hint" style="font-size:13px">or $89/yr</span></span><ul><li>Costs across accounts, down to the tool call</li><li>Client budgets, alerts, invoice export</li><li>Settings templates and copy between accounts</li><li>Risk scoring in the safety preview</li></ul></div>
+  <div class="tier"><span class="hint">Team · later</span><span class="p">~$15–20<span class="hint" style="font-size:13px">/seat</span></span><ul><li>Shared policy and config packs</li><li>Approved skill and MCP catalogue</li><li>Sync between machines</li></ul></div>
+ </div><p class="hint" style="margin-top:8px">Developer tools convert 1–5% of free users. 10,000 free users at 3% is 300 buyers: about $2.4K a month at $8, against a one-off $8.7K at $29. One-time pricing cannot pay for keeping up with Claude on three systems.</p></div>
+
+ <div class="cols">
+  <div class="box"><h3>Stop or pivot if</h3><ul><li>Fewer than ~300–500 GitHub stars 60 days after the open-source launch</li><li>Fewer than 100 people on the Pro waitlist</li><li>Anthropic ships Desktop multi-account and Pro conversion stays under 1%</li></ul><p style="font-size:13px">Then keep costs, budgets and the safety preview as a standalone tool, which works with one account too.</p></div>
+  <div class="box"><h3>Why the name Facet</h3><p style="font-size:13.5px">One person, several sides: work, personal, each client. Every account is a facet with its own colour. The name says nothing about Anthropic’s brand, as their trademark rules require. “Lanes” and “Tessera” were already taken by AI coding tools. Run a full trademark search before launch.</p></div>
+ </div>
+
+ <div><span class="eyebrow">Ten tests before writing product code</span><div class="tests" style="margin-top:10px">
+  <div class="test"><div><b>Native messaging across accounts</b>Do <span class="mono">/peers</span> and SendMessage reach a session under a different <span class="mono">CLAUDE_CONFIG_DIR</span>?</div></div>
+  <div class="test"><div><b>Desktop-launched Code sessions</b>Does a Desktop instance started with <span class="mono">CLAUDE_CONFIG_DIR</span> write to that folder?</div></div>
+  <div class="test"><div><b>Telemetry per account</b>Do account id, session id and cost arrive separately for each account?</div></div>
+  <div class="test"><div><b>Tool-call costs</b>Do transcripts carry token counts that join to tool calls?</div></div>
+  <div class="test"><div><b>Sign-in links</b>Which window gets <span class="mono">claude://</span>, and does email-code sign-in avoid it?</div></div>
+  <div class="test"><div><b>Desktop config rewrites</b>Does an edit to the MCP config survive while the app runs?</div></div>
+  <div class="test"><div><b>Wayland trade-offs</b>What does X11 mode cost in scaling and input, and do shortcuts work through the portal?</div></div>
+  <div class="test"><div><b>Environment collision</b>Confirm <span class="mono">ANTHROPIC_API_KEY</span> overrides a sign-in, proving the scrubbing need.</div></div>
+  <div class="test"><div><b>Windows and macOS spot-checks</b>Store alias with <span class="mono">--user-data-dir</span>; <span class="mono">open -n</span> after an auto-update.</div></div>
+  <div class="test"><div><b>Talk to consultants</b>Interview 8–10 people about per-client Claude costs and open a Pro waitlist.</div></div>
+ </div></div>
+
+ <div><span class="eyebrow">Sources</span><ul class="src" style="margin-top:10px">
+  <li><a href="https://github.com/anthropics/claude-code/issues/18435">Multi-account in Claude Desktop (#18435)</a></li>
+  <li><a href="https://github.com/anthropics/claude-code/issues/36151">Multi-account on mobile (#36151)</a></li>
+  <li><a href="https://github.com/anthropics/claude-code/issues/27359">Named profiles, closed with CLAUDE_CONFIG_DIR (#27359)</a></li>
+  <li><a href="https://code.claude.com/docs/en/authentication">Claude Code authentication docs</a></li>
+  <li><a href="https://code.claude.com/docs/en/monitoring-usage">Claude Code monitoring (OpenTelemetry)</a></li>
+  <li><a href="https://code.claude.com/docs/en/cross-session-messaging">Claude Code cross-session messaging</a></li>
+  <li><a href="https://code.claude.com/docs/en/legal-and-compliance">Claude Code legal and compliance</a></li>
+  <li><a href="https://www.anthropic.com/legal/consumer-terms">Anthropic Consumer Terms</a></li>
+  <li><a href="https://github.com/farion1231/cc-switch">cc-switch</a></li>
+  <li><a href="https://github.com/jmdarre-v/claude-multiprofile">claude-multiprofile</a></li>
+  <li><a href="https://claudeprofiles.com/">Claude Desktop Manager</a></li>
+  <li><a href="https://deckspace.dev/claude-accounts/">DeckSpace Claude Accounts</a></li>
+  <li><a href="https://github.com/ccusage/ccusage">ccusage</a></li>
+  <li><a href="https://github.com/realiti4/claude-swap">claude-swap</a></li>
+  <li><a href="https://venturebeat.com/technology/anthropic-cracks-down-on-unauthorized-claude-usage-by-third-party-harnesses">Anthropic crackdown on third-party harnesses</a></li>
+  <li><a href="https://learn.microsoft.com/azure/trusted-signing/quickstart">Microsoft Artifact Signing eligibility</a></li>
+ </ul><p class="hint" style="margin-top:10px">The terms and trademark points are research, not legal advice. The full report has every figure with its source.</p></div>
+</div>`;
+
+/* ================= boot ================= */
+$$("#osSeg button").forEach(x=>x.setAttribute("aria-pressed",x.dataset.os===S.os));
+if(!V[S.view])S.view="today";
+applyTheme();render();setTab(S.tab);
+})();
+</script>

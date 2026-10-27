@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(node --check:*)",
+      "Bash(python3 spikes/:*)",
+      "Read(./**)"
+    ],
+    "deny": [
+      "Read(~/.claude/.credentials.json)",
+      "Read(~/.claude-*/.credentials.json)",
+      "Read(~/.config/Claude*/Cookies*)",
+      "Read(~/.config/Claude*/Local Storage/**)",
+      "Read(~/.config/Claude*/Session Storage/**)",
+      "Read(./.env*)",
+      "Bash(git push --force:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/guard-secrets.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

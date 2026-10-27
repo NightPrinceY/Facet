@@ -1,0 +1,18 @@
+[Desktop Entry]
+Name=Claude (Work)
+Comment=Claude desktop app - Work account
+GenericName=AI Assistant
+Keywords=AI;Chat;Assistant;Claude;Work;
+Exec=/home/you/.local/bin/claude-desktop-work %U
+Icon=claude-desktop
+Type=Application
+Terminal=false
+StartupNotify=true
+StartupWMClass=claude-work
+SingleMainWindow=true
+Categories=Utility;Development;
+Actions=NewChat;
+
+[Desktop Action NewChat]
+Name=New Chat (Work)
+Exec=/home/you/.local/bin/claude-desktop-work "claude://claude.ai/new?surface=chat&source=desktop_action"

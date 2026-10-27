@@ -1,0 +1,17 @@
+# Phase 0 tests
+
+Run in order where possible. Each result goes into the matching spike README with date, Claude Code version (`claude --version`), commands and evidence.
+
+| # | Question | Why it matters | Spike folder | Needs | Status |
+|---|---|---|---|---|---|
+| 1 | Do `/peers` and SendMessage reach a Claude Code session running under a different `CLAUDE_CONFIG_DIR` signed into another account? | Decides whether the Bridge is a cheap UI or a separate project | `spikes/01-cross-account-messaging` | Two signed-in accounts, two terminals | Done 2026-10-26: discovery per account, delivery by `uds:` address crosses (D-010) |
+| 2 | Does a Claude Desktop instance started with `CLAUDE_CONFIG_DIR` make its Code tab use that folder and account? | Makes Desktop and Code one account in Facet | (notes in 01) | Second Desktop instance | Answered by inspection (account follows Desktop, folder follows `CLAUDE_CONFIG_DIR`); live check needs a work Desktop restart |
+| 3 | With telemetry env in each account's settings, do account id, session id, cost and tokens arrive separately per account at a local collector? Is `prompt.id` present? | The whole Timeline and Costs pipeline | `spikes/03-otel-per-account` | Local collector script, one prompt per account | Done 2026-10-26: per-account events, exact cost, content redacted (D-011) |
+| 4 | Do transcript JSONL files carry per-message token usage and `tool_use` ↔ `tool_result` ids with timestamps? | Tool-call-level costs and second-level timeline | `spikes/04-jsonl-attribution` | Existing transcripts (structure only) | Done 2026-10-25 (D-008) |
+| 5 | With two Desktop instances open, which window receives a `claude://` sign-in link? Does email-code sign-in avoid it? | Guided sign-in design | (notes in 01) | Sign-in to a test account | Not started: needs the user at the sign-in windows |
+| 6 | Does an edit to `claude_desktop_config.json` survive while that instance runs and the UI adds a connector? | When Facet may write Desktop config | (notes in 03) | Second Desktop instance | Not started: needs the user to add a connector in a running Desktop |
+| 7 | What does `--ozone-platform=x11` cost (fractional scaling, input methods)? Does the GlobalShortcuts portal work on this GNOME? | Linux identity and quick switcher | (notes in reference/) | Visual check by the user | Facts gathered: portal present, scale 1.0; Arabic typing check needs the user |
+| 8 | Does an exported `ANTHROPIC_API_KEY` override a profile's sign-in? | Proves the scrubbing requirement | `spikes/08-env-collision` | A dummy key value, no real key | Done 2026-10-26: all three variables override sign-in |
+| 9 | Windows: does the Store alias accept `--user-data-dir`? macOS: does an `open -n` instance survive an auto-update? | Phase 2 adapters | (later, VM or borrowed machine) | Windows and macOS machines | Not started: needs Windows and macOS machines |
+| 10 | Do consultants want per-client Claude costs enough to pay $9 a month? | Pricing and positioning | (interview notes in docs/01-research/) | 8–10 interviews, waitlist page | Not started: interviews |
+| 11 | Does a skill in `<config>/skills/` load only in that `CLAUDE_CONFIG_DIR`? Do `claude plugin validate` and `claude plugin eval` work per account without Facet touching sign-in? | Studio placement and trigger lab (M11, D-009) | `spikes/11-skill-authoring` | Lint and validate: none. Load check and eval: one short prompt per account, user approval | Done 2026-10-26: per-account skills, validate scope, eval deltas |
