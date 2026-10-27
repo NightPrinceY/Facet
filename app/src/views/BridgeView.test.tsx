@@ -59,7 +59,7 @@ describe("Bridge", () => {
       fireEvent.click(screen.getByRole("button", { name: "Write handoff" }));
     });
     const text = (await screen.findByLabelText(/Handoff \(you can edit it/)) as HTMLTextAreaElement;
-    fireEvent.change(text, { target: { value: text.value + "\ntoken ghp_abcdefghijklmnopqrstuvwxyz0123\n" } });
+    fireEvent.change(text, { target: { value: text.value + "\ntoken ghp_" + "x".repeat(36) + "\n" } });
     await act(async () => {
       fireEvent.click(screen.getByRole("button", { name: "Save handoff" }));
     });

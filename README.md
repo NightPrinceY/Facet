@@ -4,7 +4,7 @@
 
 Facet is an unofficial desktop app for people who use more than one Claude account: an employer seat and a personal plan, or one account per client. It is not affiliated with or endorsed by Anthropic. Claude is a trademark of Anthropic, PBC.
 
-> Status: **0.2.3, Linux.** Working daily on Ubuntu (GNOME). Windows and macOS come later. Plan: `docs/04-plan/ROADMAP.md`.
+> Status: **0.2.4, Linux.** Working daily on Ubuntu (GNOME). Windows and macOS come later. Plan: `docs/04-plan/ROADMAP.md`.
 
 ## What it does
 

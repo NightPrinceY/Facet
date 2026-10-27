@@ -2,6 +2,12 @@
 
 Newest first. Add entries with `/decide`.
 
+## D-023: Public repository hygiene
+Date: 2026-10-27 · Status: accepted
+Context: The repository went public with 0.2.3. A secret scanner (GitGuardian) reported two "generic" secrets in the first commit; all were fake values in tests and a spike README. The app id also used a work domain, and some docs named the developer or linked private pages.
+Decision: Tests build fake keys at run time (`testkit::fake`), so the source holds no key-shaped literal; docs use neutral fake values. The app id is `io.github.nightprincey.facet`; package authors are "Facet contributors". Personal working preferences live in the uncommitted `CLAUDE.local.md`. History is not rewritten: force pushes are denied, and the first commit held no real secret.
+Consequences: The reports on the first commit are closed in GitGuardian as test credentials. The new app id gives Facet's webview a new data folder, so the saved theme resets once. Before each push, scan for key-shaped strings, personal emails and home paths.
+
 ## D-022: Open each account's links in its own browser profile
 Date: 2026-10-26 · Status: accepted
 Context: The user's default browser is Chrome with separate personal and work profiles. Links opened by a Claude window (sign-in, links in chat) went to whichever Chrome window was last used, so the work account's links landed in the personal profile.

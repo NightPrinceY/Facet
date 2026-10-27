@@ -1,6 +1,6 @@
 # Product requirements
 
-Status: draft v0.3 · 2026-10-26 (adds M11 Studio, deep search, harness control; see D-009) · Owner: Yahya
+Status: draft v0.3 · 2026-10-26 (adds M11 Studio, deep search, harness control; see D-009)
 
 Each module lists the user problem, the requirements (MUST for v1, SHOULD for v1.x, LATER), acceptance criteria and open questions. Pro marks paid features. Phases refer to `docs/04-plan/ROADMAP.md`.
 

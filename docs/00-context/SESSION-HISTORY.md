@@ -5,7 +5,7 @@ How Facet started and what has been decided, so any Claude account opening this 
 ## 2026-10-25: from a personal setup to a product idea
 
 ### 1. The original problem
-Yahya runs Ubuntu 26 (GNOME, Wayland) on a Dell G15 and wanted his personal Claude account and his work Claude Max account open side by side in Claude Desktop.
+The developer runs Ubuntu 26 (GNOME, Wayland) and wanted a personal Claude account and a work Claude account open side by side in Claude Desktop.
 
 ### 2. What was built by hand (works today)
 - **Install found:** Claude Desktop `.deb` (`/usr/lib/claude-desktop/claude-desktop`, icon `claude-desktop`, Wayland app id `com.anthropic.Claude`). Personal profile: `~/.config/Claude` (never touched).
@@ -29,13 +29,11 @@ Verdict: **build it, but narrower than first imagined.**
 - The cross-account Bridge stays experimental until test 1 shows whether native messaging crosses accounts.
 
 ### 5. Prototype
-Three versions, the latest published at https://claude.ai/artifact/C5rDdF5JtC5tebDtZ99Dpc and copied to `prototype/facet.html`. Version 4 adds the Timeline (down to the second, replay, most-expensive conversations, tasks and tool runs).
+Three versions; the latest is `prototype/facet.html`. Version 4 adds the Timeline (down to the second, replay, most-expensive conversations, tasks and tool runs).
 
-### 6. User preferences learned
-- Research deeply before building; wants to understand what, why and how before writing code.
-- Wants plain explanations with an Arabic summary.
-- Wants "full control" to mean full control over Claude settings per account.
-- Asks before sudo and before deleting anything.
+### 6. Product direction
+- Research before building: what, why and how come before code.
+- "Full control" means full control over Claude settings per account.
 
 ## Session 2, 2026-10-25 to 26: research, Phase 0 tests, Phase 1 skeleton
 
@@ -52,6 +50,3 @@ The user asked for more abilities: creating skills and local skills, deeper harn
 
 ### 3. Phase 1 skeleton
 Built in `app/` with Rust, React and tests; reviewed by the compliance and design reviewers, with all findings fixed (D-013, D-014). Packages (.deb, AppImage) build and start. Real-machine check: both running Desktop instances and live Code sessions are detected per account; both accounts use the default 30-day transcript clean-up (Health warns).
-
-### 4. Preferences learned
-- Wants deep research, then immediate application; gave full authorisation to continue autonomously overnight. Cost is not a concern; quality is.

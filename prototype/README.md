@@ -1,6 +1,6 @@
 # Prototype
 
-`facet.html` is a single-file interactive prototype with sample data. Open it in any browser. Published copy: https://claude.ai/artifact/C5rDdF5JtC5tebDtZ99Dpc
+`facet.html` is a single-file interactive prototype with sample data. Open it in any browser.
 
 | Version | Date | What changed |
 |---|---|---|

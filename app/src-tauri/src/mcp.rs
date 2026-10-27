@@ -343,7 +343,7 @@ mod tests {
                 "add".into(),
                 "x".into(),
                 "-e".into(),
-                "TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123".into(),
+                crate::testkit::fake("TOKEN=ghp_", 36),
             ],
         )
         .unwrap();

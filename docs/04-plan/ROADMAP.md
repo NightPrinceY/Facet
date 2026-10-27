@@ -16,7 +16,7 @@ Goal: replace unknowns with facts before writing app code.
 - Terminal per account; `claude` shim with folder rules.
 - Tray, quick switcher (portal or CLI fallback), Health (first checks).
 - Packages: AppImage and .deb.
-**Exit:** Yahya runs all four accounts daily from Facet for a week without falling back to the manual setup.
+**Exit:** the developer runs all their accounts daily from Facet for a week without falling back to the manual setup.
 **Status (2026-10-26):** built except guided sign-in (waits on test 5) and portal-bound global shortcut (CLI fallback works). Details in `app/README.md`. The exit test (a week of daily use) is the user's.
 
 ## Phase 2: Control and the other platforms (~4 weeks)

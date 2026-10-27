@@ -984,6 +984,7 @@ pub fn library_root(home: &Path) -> PathBuf {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::fake;
     use std::os::unix::fs::{symlink, PermissionsExt};
 
     const GOOD: &str = "---\nname: review-pr\ndescription: \"Review a pull request for bugs and missing tests. Use when the user asks to review a PR or a diff.\"\n---\n\nSteps.\n";
@@ -1042,7 +1043,7 @@ mod tests {
         let l = lint(
             Kind::Command,
             "go",
-            "token ghp_abcdefghijklmnopqrstuvwxyz0123\n",
+            &format!("token {}\n", fake("ghp_", 30)),
         );
         assert!(l.has(Severity::Error));
     }
@@ -1078,28 +1079,31 @@ mod tests {
     #[test]
     fn secrets_are_found_everywhere_but_references_are_fine() {
         for (text, what) in [
-            ("token: sk-ant-api03-abcdefgh", "an Anthropic key"),
-            ("AKIA keys look like AKIAIOSFODNN7EXAMPLE", "an AWS key"),
-            ("ASIAIOSFODNN7EXAMPLE", "an AWS key"),
-            ("gho_abcdefghijklmnopqrstuvwxyz", "a GitHub token"),
-            ("glpat-abcdefghijklmnopqr", "a GitLab token"),
+            (fake("token: sk-ant-", 12), "an Anthropic key"),
             (
-                "key = AIzaSyA-abcdefghijklmnopqrstuvwxyz012",
-                "a Google key",
+                format!("AKIA keys look like AKIA{}", "X".repeat(16)),
+                "an AWS key",
             ),
+            (format!("ASIA{}", "X".repeat(16)), "an AWS key"),
+            (fake("gho_", 26), "a GitHub token"),
+            (fake("glpat-", 18), "a GitLab token"),
+            (fake("key = AIza", 35), "a Google key"),
+            (format!("{0}.{0}.x", fake("eyJ", 8)), "a JSON Web Token"),
             (
-                "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIn0.abc",
-                "a JSON Web Token",
-            ),
-            (
-                "Authorization: Bearer abcdefghijklmnopqrstuvwxyz",
+                fake("Authorization: Bearer ", 26),
                 "an Authorization header",
             ),
-            ("x-api-key: abcdefghijklmnopqrstu", "an API key header"),
-            ("https://bob:hunter2@example.com/x", "a password in a URL"),
-            ("-----BEGIN OPENSSH PRIVATE KEY-----", "a private key"),
+            (fake("x-api-key: ", 21), "an API key header"),
+            (
+                format!("https://bob:{}@example.com/x", fake("", 8)),
+                "a password in a URL",
+            ),
+            (
+                format!("-----BEGIN {} PRIVATE KEY-----", "OPENSSH"),
+                "a private key",
+            ),
         ] {
-            assert_eq!(find_secret(text), Some(what), "{text}");
+            assert_eq!(find_secret(&text), Some(what), "{text}");
         }
         for fine in [
             "use ${GITHUB_TOKEN}",
@@ -1163,7 +1167,7 @@ mod tests {
             .save(
                 Kind::Skill,
                 "x",
-                "---\nname: x\ndescription: y\n---\nghp_abcdefghijklmnopqrstuvwx\n"
+                &format!("---\nname: x\ndescription: y\n---\n{}\n", fake("ghp_", 24))
             )
             .unwrap_err()
             .to_string()
@@ -1337,7 +1341,10 @@ mod tests {
         // An account copy holding a secret is never shown or replaced.
         fs::write(
             code.join("agents/token.md"),
-            "---\nname: token\ndescription: x\n---\nghp_abcdefghijklmnopqrstuvwxyz\n",
+            format!(
+                "---\nname: token\ndescription: x\n---\n{}\n",
+                fake("ghp_", 26)
+            ),
         )
         .unwrap();
         assert_eq!(

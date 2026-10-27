@@ -13,6 +13,7 @@ spikes/**/*.jsonl
 
 # Claude Code local-only settings
 .claude/settings.local.json
+CLAUDE.local.md
 
 # OS
 .DS_Store

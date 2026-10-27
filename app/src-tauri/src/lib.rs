@@ -27,6 +27,9 @@ pub mod settings;
 pub mod studio;
 pub mod usage;
 
+#[cfg(test)]
+mod testkit;
+
 use std::path::PathBuf;
 use std::time::Duration;
 use tauri::{Emitter, Manager};

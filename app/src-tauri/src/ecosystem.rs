@@ -1163,6 +1163,7 @@ pub fn inventory(account_id: &str, code_dir: &Path, home: &Path) -> Inventory {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::fake;
     use serde_json::json;
 
     fn write(root: &Path, rel: &str, text: &str) {
@@ -1173,18 +1174,27 @@ mod tests {
 
     #[test]
     fn redacts_secrets_in_commands_and_urls() {
-        assert_eq!(redact("run --token=abc123"), "run --token=‹hidden›");
+        let value = fake("", 8);
         assert_eq!(
-            redact("GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxx node x.js"),
+            redact(&format!("run --token={value}")),
+            "run --token=‹hidden›"
+        );
+        assert_eq!(
+            redact(&format!("GITHUB_TOKEN={} node x.js", fake("ghp_", 20))),
             "GITHUB_TOKEN=‹hidden› node x.js"
         );
         assert!(!redact("https://user:pass@host.example/x").contains("pass"));
         assert_eq!(
-            redact("curl --api-key abc123 -H Authorization: Bearer tkn https://x.example"),
+            redact(&format!(
+                "curl --api-key {value} -H Authorization: Bearer {value} https://x.example"
+            )),
             "curl --api-key ‹hidden› -H ‹hidden› ‹hidden› ‹hidden› https://x.example"
         );
         assert_eq!(
-            redact("https://mcp.example.com/v1/sk7f9a2b4c6d8e0f1a2b/mcp?token=x"),
+            redact(&format!(
+                "https://mcp.example.com/v1/{}1/mcp?token=x",
+                fake("", 16)
+            )),
             "https://mcp.example.com/v1/‹hidden›/mcp?‹hidden›"
         );
         assert_eq!(
@@ -1235,7 +1245,8 @@ mod tests {
         write(
             r,
             "hooks/hooks.json",
-            r#"{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"${CLAUDE_PLUGIN_ROOT}/bin/start --api-key=sk-ant-xxxxxxxxxxxxxxxxxxxx"}]}],"PostToolUse":[{"matcher":"Edit","hooks":[{"type":"http","url":"https://hooks.example.com/x"}]}]}}"#,
+            &r#"{"hooks":{"SessionStart":[{"hooks":[{"type":"command","command":"${CLAUDE_PLUGIN_ROOT}/bin/start --api-key=KEY"}]}],"PostToolUse":[{"matcher":"Edit","hooks":[{"type":"http","url":"https://hooks.example.com/x"}]}]}}"#
+                .replace("KEY", &fake("sk-ant-", 20)),
         );
         write(
             r,
@@ -1347,7 +1358,8 @@ mod tests {
         write(
             &code,
             ".claude.json",
-            r#"{"oauthAccount":{"emailAddress":"private@example.com"},"primaryApiKey":"sk-ant-api03-SECRETSECRET","mcpServers":{"gh":{"type":"http","url":"https://api.example.com/mcp","headers":{"Authorization":"Bearer x"}}},"projects":{"/w/app":{"mcpServers":{"local":{"command":"node","args":["s.js"]}},"history":[{"display":"SECRET PROMPT"}]}}}"#,
+            &r#"{"oauthAccount":{"emailAddress":"private@example.com"},"primaryApiKey":"KEY","mcpServers":{"gh":{"type":"http","url":"https://api.example.com/mcp","headers":{"Authorization":"Bearer x"}}},"projects":{"/w/app":{"mcpServers":{"local":{"command":"node","args":["s.js"]}},"history":[{"display":"SECRET PROMPT"}]}}}"#
+                .replace("KEY", &fake("sk-ant-", 20)),
         );
         let inv = inventory("work", &code, home.path());
         assert_eq!(inv.plugins.len(), 2);
@@ -1361,6 +1373,7 @@ mod tests {
         let dump = format!("{inv:?}");
         assert!(
             !dump.contains("private@example.com")
+                && !dump.contains("sk-ant-")
                 && !dump.contains("SECRET")
                 && !dump.contains("Bearer x"),
             "{dump}"

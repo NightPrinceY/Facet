@@ -1,8 +1,8 @@
 [package]
 name = "facet"
-version = "0.2.3"
+version = "0.2.4"
 description = "Facet: keep several Claude accounts apart on one computer. Unofficial, not affiliated with Anthropic."
-authors = ["Yahya Alnwsany"]
+authors = ["Facet contributors"]
 # License not chosen yet (open core, D-005); not published.
 publish = false
 edition = "2021"

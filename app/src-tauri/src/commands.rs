@@ -1159,11 +1159,11 @@ mod resume_tests {
 
     #[test]
     fn only_uuid_session_ids_are_resumed() {
-        assert!(is_uuid("2c52f684-4c38-4cb4-aa17-78b4c25c50fd"));
+        assert!(is_uuid("6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4d"));
         assert!(!is_uuid("--dangerously-skip-permissions"));
-        assert!(!is_uuid("2c52f684-4c38-4cb4-aa17-78b4c25c50f"));
-        assert!(!is_uuid("2c52f684-4c38-4cb4-aa17-78b4c25c50fz"));
-        assert!(!is_uuid("-c52f684-4c38-4cb4-aa17-78b4c25c50fd"));
+        assert!(!is_uuid("6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4"));
+        assert!(!is_uuid("6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4z"));
+        assert!(!is_uuid("-f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4b"));
     }
 }
 

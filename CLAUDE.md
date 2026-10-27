@@ -13,8 +13,8 @@ Working name only: run a trademark search before any public launch (see `docs/02
 | `docs/02-product/` | Vision, PRD, the Timeline spec, personas and pricing, naming. |
 | `docs/03-architecture/` | Architecture, data model, platform adapters, security and compliance. `EXTENSION-SURFACE.md` is the reference for every Claude Code file and CLI command Facet may read or write (skills, agents, hooks, plugins, MCP, settings). |
 | `docs/04-plan/` | Roadmap, Phase 0 tests, risks, decision log. |
-| `docs/05-design/` | Design system, tokens (`tokens.css`, `tokens.json`), component specs. Browsable copy: https://claude.ai/artifact/6wMDMEo9PBxuFNoqWF1J5h (files mirrored in `design-system-artifact/`). |
-| `prototype/facet.html` | Interactive prototype (single HTML file, sample data). Published copy: https://claude.ai/artifact/C5rDdF5JtC5tebDtZ99Dpc |
+| `docs/05-design/` | Design system, tokens (`tokens.css`, `tokens.json`), component specs. A browsable copy's files are in `design-system-artifact/`. |
+| `prototype/facet.html` | Interactive prototype (single HTML file, sample data). |
 | `spikes/` | Phase 0 experiments. Each has a README with the question, the method and a Result section. |
 | `reference/linux-setup/` | The working hand-made setup (second Claude Desktop instance + dock fix). |
 | `app/` | The real app (Tauri 2 + Rust + React + TypeScript). Phase 1 skeleton built; how to run, test and build is in `app/README.md`. |
@@ -41,11 +41,12 @@ When in doubt, use the `compliance-reviewer` agent in `.claude/agents/`.
 
 ## How to work here
 
-- Write docs and code in plain English. Keep the Arabic summary at the end of user-facing reports.
+- Write docs and code in plain English.
 - Prefer facts with sources. Mark anything unverified as such.
 - Record every product or architecture decision in `docs/04-plan/DECISIONS.md` (use `/decide`).
 - Use the design tokens in `docs/05-design/tokens.css`. Do not add raw hex values, font sizes or spacing outside the scales.
 - Commit in small steps with clear messages once the user asks for commits.
+- Personal working preferences go in `CLAUDE.local.md` (not committed).
 
 ## Useful commands
 

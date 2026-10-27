@@ -441,11 +441,12 @@ pub fn opening_prompt(path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::testkit::fake;
 
     fn session() -> SessionSummary {
         SessionSummary {
             account_id: "work".into(),
-            session_id: "2c52f684-4c38-4cb4-aa17-78b4c25c50fd".into(),
+            session_id: "6f1c2a3b-4d5e-4f60-8a7b-9c0d1e2f3a4d".into(),
             project: Some("/home/u/app".into()),
             branch: Some("main".into()),
             prompts: 3,
@@ -457,9 +458,14 @@ mod tests {
 
     #[test]
     fn diff_redaction_hides_secret_lines_and_env_files() {
-        let raw = "diff --git a/src/a.rs b/src/a.rs\n--- a/src/a.rs\n+++ b/src/a.rs\n@@ -1 +1 @@\n-let x = 1;\n+let key = \"ghp_abcdefghijklmnopqrstuvwxyz0123456789\";\n+let y = 2;\ndiff --git a/.env.local b/.env.local\n--- a/.env.local\n+++ b/.env.local\n@@ -0,0 +1 @@\n+DB_PASSWORD=hunter2\n";
-        let (out, n) = redact_diff(raw);
-        assert!(!out.contains("ghp_") && !out.contains("hunter2"), "{out}");
+        let raw = "diff --git a/src/a.rs b/src/a.rs\n--- a/src/a.rs\n+++ b/src/a.rs\n@@ -1 +1 @@\n-let x = 1;\n+let key = \"{TOKEN}\";\n+let y = 2;\ndiff --git a/.env.local b/.env.local\n--- a/.env.local\n+++ b/.env.local\n@@ -0,0 +1 @@\n+DB_PASSWORD={PW}\n"
+            .replace("{TOKEN}", &fake("ghp_", 36))
+            .replace("{PW}", &fake("", 12));
+        let (out, n) = redact_diff(&raw);
+        assert!(
+            !out.contains("ghp_") && !out.contains(&fake("", 12)),
+            "{out}"
+        );
         assert!(out.contains("+let y = 2;"));
         assert!(out.contains("(contents hidden: this file usually holds secrets)"));
         assert_eq!(n, 2);

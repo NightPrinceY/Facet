@@ -32,7 +32,7 @@ ALLOW = [
     {"command": "ls ~/.claude/sessions"},
     {"command": "tr '\\0' '\\n' < /proc/123/environ | cut -d= -f1 | sort"},
     {"command": "echo \"== 1: fake " + V + "\""},
-    {"command": "env -u " + V + " " + V + "=sk-ant-invalid-facet-test claude -p hi"},
+    {"command": "env -u " + V + " " + V + "=facet-invalid-test claude -p hi"},
     {"command": "grep -nE " + V + " ~/.bashrc | cut -d= -f1"},
     {"command": "set -euo pipefail; ls"},
     {"command": "python3 -I spikes/11-skill-authoring/lint_skills.py .claude"},

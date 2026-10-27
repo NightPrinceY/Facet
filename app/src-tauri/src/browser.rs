@@ -576,12 +576,12 @@ mod tests {
     fn finds_the_account_from_the_environment() {
         let accounts = vec![
             acc("personal", "/h/.claude"),
-            acc("dev-qud", "/h/.claude-work"),
+            acc("work", "/h/.claude-work"),
         ];
         let h = Path::new("/h");
         assert_eq!(
-            account_for(Some("dev-qud"), None, &accounts, h).as_deref(),
-            Some("dev-qud")
+            account_for(Some("work"), None, &accounts, h).as_deref(),
+            Some("work")
         );
         assert_eq!(
             account_for(
@@ -591,7 +591,7 @@ mod tests {
                 h
             )
             .as_deref(),
-            Some("dev-qud")
+            Some("work")
         );
         assert_eq!(
             account_for(None, Some(Path::new("/h/.claude")), &accounts, h).as_deref(),

@@ -342,7 +342,7 @@ export function AccountModal({ existing, home, account, preset, onClose, onSaved
     <>
       {withDesktop && <Checkbox checked={x11} onChange={setX11} label="Own dock icon" hint="Runs this Desktop window under X11 so the dock shows it separately with the icon below. Text may look slightly blurry at 125% or 150% display scaling." />}
       {withDesktop && editing && (
-        <Field label="Name in the dock and menu" htmlFor="acc-lname" hint={`Leave empty for "${name.trim() || "Account"} · Facet". For example Claude Dev Wider.`}>
+        <Field label="Name in the dock and menu" htmlFor="acc-lname" hint={`Leave empty for "${name.trim() || "Account"} · Facet". For example Claude Work.`}>
           <input id="acc-lname" className="input" value={launcherName} placeholder={`${name.trim() || "Account"} · Facet`} onChange={(e) => setLauncherName(e.target.value)} aria-describedby="acc-lname-hint" maxLength={64} autoComplete="off" />
         </Field>
       )}
