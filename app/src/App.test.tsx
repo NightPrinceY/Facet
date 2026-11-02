@@ -120,13 +120,13 @@ describe("Facet app (sample backend)", () => {
     expect(within(dialog).getByText(/is reserved/)).toBeTruthy();
   });
 
-  it("removing an account asks first and says folders stay", async () => {
+  it("removing an account asks first and says Claude folders are kept", async () => {
     await renderApp();
     const work = screen.getByRole("article", { name: "Work" });
     fireEvent.click(within(work).getByRole("button", { name: /Edit/ }));
     const dialog = await screen.findByRole("dialog", { name: "Edit Work" });
-    fireEvent.click(within(dialog).getByRole("button", { name: /Remove from Facet/ }));
-    expect(within(dialog).getByText(/folders, sign-in and history stay exactly as they are/)).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: /Delete account/ }));
+    expect(within(dialog).getByText(/Claude folders, sign-in and history are not deleted/)).toBeTruthy();
     expect(document.activeElement?.textContent).toBe("Keep");
     await act(async () => {
       fireEvent.click(within(dialog).getByRole("button", { name: "Remove" }));

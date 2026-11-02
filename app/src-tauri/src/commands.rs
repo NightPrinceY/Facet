@@ -459,10 +459,43 @@ pub fn rename_account(
     Ok(view(&state, renamed))
 }
 
-/// Forget an account in Facet. Its folders and sign-in stay as they are.
+/// Remove an account from Facet, along with what Facet installed for it
+/// (launcher, `claude-<id>` command, folder rules, backups, start file,
+/// link choice). Its Claude folders, sign-in and history stay as they are.
 #[tauri::command]
 pub fn delete_account(state: tauri::State<'_, AppState>, id: String) -> Result<()> {
-    state.store.remove(&id)
+    let account = state.store.get(&id)?;
+    let running = linux::running_desktops(Path::new("/proc"), &state.home);
+    if linux::instance_for(&account, &running).is_some() {
+        return Err(Error::Invalid(format!(
+            "Quit {}'s Desktop app before removing it.",
+            account.name
+        )));
+    }
+    state.store.remove(&id)?;
+    linux::remove_launcher(&state.home, &id);
+    linux::remove_shim(&state.home, &id);
+    let _ = fs::remove_file(linux::bash_rc_path(&state.home, &account));
+    let _ = fs::remove_dir_all(control::backup_dir(&state.home, &id));
+    state.forget_launch(&id);
+    if let Ok(mut rules) = state.rules.load() {
+        if rules.iter().any(|r| r.account_id == id) {
+            rules.retain(|r| r.account_id != id);
+            if let Ok(accounts) = state.store.load() {
+                let _ = state.rules.save(&rules, &accounts, &state.home);
+                if rules::auto_script_path(&state.home).is_file() {
+                    if let Some(claude) = linux::find_claude_code() {
+                        let _ = rules::install_auto_script(&state.home, &rules, &accounts, &claude.path);
+                    }
+                }
+            }
+        }
+    }
+    let mut links = crate::browser::load(&state.home);
+    if links.accounts.remove(&id).is_some() {
+        let _ = crate::browser::save(&state.home, &links);
+    }
+    Ok(())
 }
 
 /// Folder pairs on disk that no account uses yet.

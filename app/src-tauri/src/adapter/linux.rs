@@ -555,11 +555,9 @@ pub fn desktop_entry(account: &Account, facet_exe: &Path, icon: &Path, hidden: b
     format!(
         "[Desktop Entry]\nType=Application\nName={title}\nComment=Opens the Claude desktop app as {name} (unofficial launcher, not affiliated with Anthropic)\nExec={exe} --launch {id}\nIcon={icon}\nStartupWMClass={class}\nTerminal=false\nCategories=Utility;\n{nodisplay}X-Facet-Account={id}\n",
         title = launcher_title(account),
-        icon = if account.launcher_icon == crate::profile::LauncherIcon::Claude {
-            "claude-desktop".to_string()
-        } else {
-            icon.display().to_string()
-        },
+        // Always the file Facet wrote (the Claude style embeds the installed
+        // icon), never a theme name: a theme name can fail to resolve in the dock.
+        icon = icon.display(),
         nodisplay = if hidden { "NoDisplay=true\n" } else { "" },
         name = account.name.replace(['\n', '\r'], " "),
         exe = desktop_exec_quote(&facet_exe.display().to_string()),
@@ -611,6 +609,33 @@ pub fn launcher_icon_path(home: &Path, id: &str) -> PathBuf {
     home.join(format!(".local/share/facet/icons/facet-{id}.svg"))
 }
 
+/// Icon file for the current picture. The name carries a hash of the
+/// content because the desktop shell caches icons by path: rewriting the same
+/// path leaves the old picture in the dock until the shell restarts.
+fn launcher_icon_versioned(home: &Path, id: &str, svg: &str) -> PathBuf {
+    let hash = svg.bytes().fold(0xcbf29ce484222325u64, |h, b| {
+        (h ^ u64::from(b)).wrapping_mul(0x100000001b3)
+    });
+    home.join(format!(".local/share/facet/icons/facet-{id}-{:08x}.svg", hash as u32))
+}
+
+/// Delete the account's icon files (current, older versions and the legacy
+/// unversioned name), except `keep`.
+fn remove_launcher_icons(home: &Path, id: &str, keep: Option<&Path>) {
+    let dir = home.join(".local/share/facet/icons");
+    let (plain, prefix) = (format!("facet-{id}.svg"), format!("facet-{id}-"));
+    let Ok(entries) = fs::read_dir(&dir) else { return };
+    for e in entries.flatten() {
+        let name = e.file_name().to_string_lossy().to_string();
+        let version = name.strip_prefix(&prefix).and_then(|r| r.strip_suffix(".svg"));
+        let ours = name == plain
+            || version.is_some_and(|v| v.len() == 8 && v.bytes().all(|b| b.is_ascii_hexdigit()));
+        if ours && keep != Some(e.path().as_path()) {
+            let _ = fs::remove_file(e.path());
+        }
+    }
+}
+
 /// A launcher that only gives the dock an icon and name (not in the menu).
 pub fn launcher_hidden(home: &Path, id: &str) -> bool {
     fs::read_to_string(launcher_path(home, id)).is_ok_and(|t| t.contains("\nNoDisplay=true\n"))
@@ -622,7 +647,7 @@ pub fn remove_launcher(home: &Path, id: &str) {
     if fs::read_to_string(&entry).is_ok_and(|t| t.contains("X-Facet-Account=")) {
         let _ = fs::remove_file(&entry);
     }
-    let _ = fs::remove_file(launcher_icon_path(home, id));
+    remove_launcher_icons(home, id, None);
 }
 
 /// Remove a `claude-<id>` command, only when Facet wrote it.
@@ -640,7 +665,7 @@ pub fn install_launcher(
     icon_svg: &str,
     hidden: bool,
 ) -> Result<PathBuf> {
-    let icon = launcher_icon_path(home, &account.id);
+    let icon = launcher_icon_versioned(home, &account.id, icon_svg);
     if let Some(dir) = icon.parent() {
         fs::create_dir_all(dir)?;
     }
@@ -650,6 +675,7 @@ pub fn install_launcher(
         fs::create_dir_all(dir)?;
     }
     write_atomic(&entry, &desktop_entry(account, facet_exe, &icon, hidden))?;
+    remove_launcher_icons(home, &account.id, Some(&icon));
     let _ = env::command("update-desktop-database")
         .arg(entry.parent().unwrap_or(home))
         .stdout(Stdio::null())

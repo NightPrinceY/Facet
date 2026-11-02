@@ -11,6 +11,7 @@ import { AccountModal, type AccountPreset } from "./AccountModal";
 export function AccountsView({ data, scope, onAdd, onScope }: { data: FacetData; scope: string | null; onAdd: () => void; onScope: (id: string | null) => void }) {
   const api = useApi();
   const [editing, setEditing] = useState<Account | null>(null);
+  const [removeFirst, setRemoveFirst] = useState(false);
   const [detected, setDetected] = useState<DetectedSetup[]>([]);
   const [adopting, setAdopting] = useState<string | null>(null);
   const [adoptError, setAdoptError] = useState<string | null>(null);
@@ -125,7 +126,8 @@ export function AccountsView({ data, scope, onAdd, onScope }: { data: FacetData;
               state={data.states[a.id]}
               selected={scope === a.id}
               home={home}
-              onEdit={() => setEditing(a)}
+              onEdit={() => (setRemoveFirst(false), setEditing(a))}
+              onDelete={() => (setRemoveFirst(true), setEditing(a))}
               onChanged={data.refresh}
               onMove={scope || data.accounts.length < 2 ? undefined : (by) => void move(a.id, by)}
               position={ids.indexOf(a.id)}
@@ -201,6 +203,7 @@ export function AccountsView({ data, scope, onAdd, onScope }: { data: FacetData;
           existing={data.accounts}
           home={home ?? ""}
           account={editing}
+          startRemove={removeFirst}
           onClose={() => setEditing(null)}
           onSaved={() => {
             setEditing(null);
@@ -216,7 +219,7 @@ export function AccountsView({ data, scope, onAdd, onScope }: { data: FacetData;
   );
 }
 
-function AccountCard({ account: a, state, selected, home, onEdit, onChanged, onMove, position, count }: { account: Account; state?: AccountState; selected: boolean; home?: string; onEdit: () => void; onChanged: () => Promise<void>; onMove?: (by: -1 | 1) => void; position: number; count: number }) {
+function AccountCard({ account: a, state, selected, home, onEdit, onDelete, onChanged, onMove, position, count }: { account: Account; state?: AccountState; selected: boolean; home?: string; onEdit: () => void; onDelete: () => void; onChanged: () => Promise<void>; onMove?: (by: -1 | 1) => void; position: number; count: number }) {
   const api = useApi();
   const toast = useToast();
   const titleId = useId();
@@ -402,6 +405,9 @@ function AccountCard({ account: a, state, selected, home, onEdit, onChanged, onM
         </Button>
         <Button size="sm" variant="ghost" icon="settings" onClick={onEdit}>
           Edit all options
+        </Button>
+        <Button size="sm" variant="ghost" icon="trash" onClick={onDelete}>
+          Delete account
         </Button>
       </div>
 

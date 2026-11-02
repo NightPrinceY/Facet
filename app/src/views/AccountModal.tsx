@@ -33,7 +33,7 @@ export interface AccountPreset {
 
 /** Add (three steps) or edit (one page, every option) an account. Writes
  *  only Facet's own files; Claude creates its folders on first start. */
-export function AccountModal({ existing, home, account, preset, onClose, onSaved, onDeleted }: { existing: Account[]; home: string; account?: Account; preset?: AccountPreset; onClose: () => void; onSaved: (a: Account) => void; onDeleted?: () => void }) {
+export function AccountModal({ existing, home, account, preset, onClose, onSaved, onDeleted, startRemove }: { existing: Account[]; home: string; account?: Account; preset?: AccountPreset; startRemove?: boolean; onClose: () => void; onSaved: (a: Account) => void; onDeleted?: () => void }) {
   const api = useApi();
   const toast = useToast();
   const editing = Boolean(account);
@@ -60,7 +60,7 @@ export function AccountModal({ existing, home, account, preset, onClose, onSaved
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmRemove, setConfirmRemove] = useState(false);
+  const [confirmRemove, setConfirmRemove] = useState(!!startRemove);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const id = editing ? shortId.trim() : slugify(name);
@@ -175,7 +175,7 @@ export function AccountModal({ existing, home, account, preset, onClose, onSaved
     setRemoving(true);
     try {
       await api.deleteAccount(account.id);
-      toast(`Facet forgot ${account.name}; its folders and sign-in are unchanged.`);
+      toast(`Deleted ${account.name} from Facet; its Claude folders and sign-in are unchanged.`);
       onDeleted?.();
     } catch (e) {
       setError(errorText(e));
@@ -405,7 +405,7 @@ export function AccountModal({ existing, home, account, preset, onClose, onSaved
           <div className="actions">
             {editing && !confirmRemove && (
               <Button variant="ghost" icon="trash" onClick={() => setConfirmRemove(true)}>
-                Remove from Facet
+                Delete account
               </Button>
             )}
             {!editing && step > 0 && (
@@ -438,7 +438,7 @@ export function AccountModal({ existing, home, account, preset, onClose, onSaved
             </div>
           }
         >
-          <p>Facet forgets this account. Its folders, sign-in and history stay exactly as they are.</p>
+          <p>Delete this account from Facet, with its launcher, claude command and folder rules. Its Claude folders, sign-in and history are not deleted.</p>
         </Callout>
       )}
 
